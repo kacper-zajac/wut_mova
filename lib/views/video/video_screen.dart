@@ -1,5 +1,9 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:mova/constants.dart';
+import 'package:mova/model/speech_to_text.dart';
+import 'package:mova/model/transcribed_word.dart';
+import 'package:mova/model/video_to_audio.dart';
 import 'package:mova/views/widgets/video_item.dart';
 import 'dart:io';
 import 'package:video_player/video_player.dart';
@@ -12,9 +16,25 @@ class VideoScreen extends StatefulWidget {
 }
 
 class _VideoScreenState extends State<VideoScreen> {
+  List<TranscribedWord> transcribedWords = [];
   bool _loaded = false;
   bool _loading = false;
+  String _transcript = '';
+  SpeechToText1 stt = SpeechToText1();
+  String? _filePath;
   late VideoPlayerController _videoPlayerController;
+
+  Future<void> getTranscript() async {
+    await stt.init();
+
+    VideoToSpeechConverter vtsc = VideoToSpeechConverter();
+    String wavPath = await vtsc.toMp3(_filePath!);
+    await stt.getTranscript(transcribedWords,
+        '/data/user/0/pl.kacperzajac.mova/app_flutter/out_audio.wav');
+    setState(() {
+      print(_transcript);
+    });
+  }
 
   Future<void> getVideo() async {
     setState(() {
@@ -23,12 +43,16 @@ class _VideoScreenState extends State<VideoScreen> {
     FilePickerResult? result = await FilePicker.platform
         .pickFiles(type: FileType.video, allowMultiple: false);
     if (result != null && result.files.single.path != null) {
-      _videoPlayerController =
-          VideoPlayerController.file(File(result.files.single.path!));
+      _filePath = result.files.single.path;
+      _videoPlayerController = VideoPlayerController.file(File(_filePath!));
       _videoPlayerController.initialize();
 
       setState(() {
         _loaded = true;
+      });
+    } else {
+      setState(() {
+        _loading = false;
       });
     }
     return;
@@ -37,9 +61,6 @@ class _VideoScreenState extends State<VideoScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Center(child: Text('video testing')),
-      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -49,14 +70,23 @@ class _VideoScreenState extends State<VideoScreen> {
                   ? VideoItem(videoPlayerController: _videoPlayerController)
                   : (_loading == false
                       ? TextButton(
-                          onPressed: () {
-                            getVideo();
+                          onPressed: () async {
+                            await getVideo();
+                            getTranscript();
                           },
                           child: const Text('Choose a video'),
                         )
                       : const Center(
                           child: CircularProgressIndicator(),
                         )),
+            ),
+          ),
+          Expanded(
+            child: Container(
+              height: 150.0,
+              child: Center(
+                  child: Text(_transcript, style: kBoxTextStyle, textAlign: TextAlign.center,),
+              ),
             ),
           ),
           Expanded(
@@ -71,6 +101,7 @@ class _VideoScreenState extends State<VideoScreen> {
                   setState(() {
                     _loading = false;
                     _loaded = false;
+                    _transcript = '';
                   });
                 },
                 child: const Text('reset'),

@@ -37,6 +37,9 @@ class _VideoItemState extends State<VideoItem> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      padding: EdgeInsets.all(15.0),
+      color: Colors.white,
+      margin: EdgeInsets.all(5.0),
       child: Chewie(
         controller: _chewieController,
       ),

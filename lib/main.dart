@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mova/constants.dart';
 import 'package:mova/views/menu/menu_screen.dart';
 import 'package:mova/views/video/video_screen.dart';
 
@@ -14,13 +15,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
-      initialRoute: VideoScreen.id,
+      initialRoute: MenuScreen.id,
       routes: {
         VideoScreen.id : (context) => VideoScreen(),
         MenuScreen.id : (context) => MenuScreen(),
       },
       theme: ThemeData(
-        primarySwatch: Colors.orange,
+        scaffoldBackgroundColor: kBackgroundColor,
+        primarySwatch: Colors.deepPurple,
       ),
     );
   }
