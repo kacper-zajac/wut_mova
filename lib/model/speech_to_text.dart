@@ -1,9 +1,10 @@
-import 'package:google_speech/generated/google/cloud/speech/v1/cloud_speech.pb.dart' as gcs;
+import 'package:google_speech/generated/google/cloud/speech/v1/cloud_speech.pb.dart'
+    as gcs;
 import 'package:google_speech/google_speech.dart';
 import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:mova/model/transcribed_word.dart';
-
+import 'package:mova/views/widgets/transcribed_word_widget.dart';
+import '../constants.dart';
 
 class SpeechToText1 {
   late ServiceAccount _serviceAccount;
@@ -17,7 +18,7 @@ class SpeechToText1 {
   }
 
   init() async {
-    String json = await loadAsset('lib/wut-mova-7c1c055a55f6.json');
+    String json = await loadAsset('lib/wut-mova-344119-ba7ed2dfbbb3.json');
     _serviceAccount = ServiceAccount.fromString(json);
     _speechToText = SpeechToText.viaServiceAccount(_serviceAccount);
     _config = RecognitionConfig(
@@ -31,41 +32,45 @@ class SpeechToText1 {
   }
 
   Future<void> getTranscript(
-      List<TranscribedWord> transcribedWords, String path) async {
+      List<TranscribedWordWidget> transcribedWords, String path) async {
     final audio = File(path).readAsBytesSync().toList();
-    await _speechToText.recognize(_config, audio).then((value) {
-      for (gcs.WordInfo wi in value.results.first.alternatives.first.words) {
-        transcribedWords.add(
-          TranscribedWord(
-              text: wi.word,
-              startTime: wi.startTime.nanos,
-              endTime: wi.endTime.nanos),
-        );
-      }
-    });
+    await _speechToText.recognize(_config, audio).then(
+      (value) {
+        for (gcs.WordInfo wi in value.results.first.alternatives.first.words) {
+          int startTimeSec = wi.startTime.seconds.toInt() * 1000000;
+          int startTimeMicroSec = wi.startTime.nanos ~/ 1000 - kSpeechConstant;
+          int endTimeSec = wi.endTime.seconds.toInt() * 1000000;
+          int endTimeMicroSec = wi.endTime.nanos ~/ 1000 + kSpeechConstant;
+          transcribedWords.add(
+            TranscribedWordWidget(
+                text: wi.word, startTime: startTimeSec + startTimeMicroSec, endTime: endTimeSec + endTimeMicroSec),
+          );
+        }
+      },
+    );
   }
 
-  // Future<void> _copyFileFromAssets(String name) async {
-  //   // var data = await rootBundle.load('assets/$name');
-  //   // final directory = await getApplicationDocumentsDirectory();
-  //   // final path = directory.path + '/$name';
-  //   // await File(path).writeAsBytes(
-  //   //     data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
-  // }
-  //
-  // Future<Stream<List<int>>> _getAudioStream(String path) async {
-  //   if (!File(path).existsSync()) {
-  //     await _copyFileFromAssets(path);
-  //   }
-  //   return File(path).openRead();
-  // }
+// Future<void> _copyFileFromAssets(String name) async {
+//   // var data = await rootBundle.load('assets/$name');
+//   // final directory = await getApplicationDocumentsDirectory();
+//   // final path = directory.path + '/$name';
+//   // await File(path).writeAsBytes(
+//   //     data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
+// }
+//
+// Future<Stream<List<int>>> _getAudioStream(String path) async {
+//   if (!File(path).existsSync()) {
+//     await _copyFileFromAssets(path);
+//   }
+//   return File(path).openRead();
+// }
 
-  // Future<Stream> getStream(String path) async {
-  //   return _speechToText.streamingRecognize(
-  //     StreamingRecognitionConfig(config: _config, interimResults: true),
-  //     await _getAudioStream(path),
-  //   );
-  // }
+// Future<Stream> getStream(String path) async {
+//   return _speechToText.streamingRecognize(
+//     StreamingRecognitionConfig(config: _config, interimResults: true),
+//     await _getAudioStream(path),
+//   );
+// }
 }
 
 /*

@@ -11,3 +11,12 @@ const kBoxBottomTextStyle = TextStyle(
     color: Color(0xFFE2E4EB),
     fontSize: 15.0
 );
+const kTranscribedTextInactive = TextStyle(
+    color: Color(0xFFE2E4EB),
+    fontSize: 15.0
+);
+const kTranscribedTextActive = TextStyle(
+    color: Colors.lightBlueAccent,
+    fontSize: 15.0
+);
+const int kSpeechConstant = 150000;
