@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:chewie/chewie.dart';
+import 'package:mova/provider/video_timer.dart';
+import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoItem extends StatefulWidget {
@@ -32,6 +34,11 @@ class _VideoItemState extends State<VideoItem> {
         );
       },
     );
+    widget.videoPlayerController.addListener(() {
+      Provider.of<VideoTimer>(context, listen: false).setTime(
+          widget.videoPlayerController.value.position.inSeconds,
+          widget.videoPlayerController.value.position.inMicroseconds);
+    });
   }
 
   @override
