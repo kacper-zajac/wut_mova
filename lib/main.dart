@@ -17,8 +17,8 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       initialRoute: MenuScreen.id,
       routes: {
-        VideoScreen.id : (context) => VideoScreen(),
-        MenuScreen.id : (context) => MenuScreen(),
+        VideoScreen.id: (context) => VideoScreen(),
+        MenuScreen.id: (context) => MenuScreen(),
       },
       theme: ThemeData(
         scaffoldBackgroundColor: kBackgroundColor,

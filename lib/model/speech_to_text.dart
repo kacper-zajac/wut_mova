@@ -1,9 +1,13 @@
+import 'package:flutter/cupertino.dart';
 import 'package:google_speech/generated/google/cloud/speech/v1/cloud_speech.pb.dart'
     as gcs;
 import 'package:google_speech/google_speech.dart';
 import 'dart:io';
 import 'package:flutter/services.dart' show rootBundle;
-import 'package:mova/views/widgets/transcribed_word_widget.dart';
+import 'package:mova/model/transcribed_word.dart';
+import 'package:mova/provider/transcribed_words.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:provider/provider.dart';
 import '../constants.dart';
 
 class SpeechToText1 {
@@ -31,65 +35,38 @@ class SpeechToText1 {
         languageCode: 'en-US');
   }
 
-  Future<void> getTranscript(
-      List<TranscribedWordWidget> transcribedWords, String path) async {
-    final audio = File(path).readAsBytesSync().toList();
+  Future<void> getTranscript(BuildContext context, String audioPath, String projectName) async {
+    await init();
+
+    Directory dir = await getApplicationDocumentsDirectory();
+    Directory(dir.path + '/' + projectName + '/' + kWorkDirectoryName)
+        .createSync();
+
+    final audio = File(audioPath).readAsBytesSync().toList();
+
     await _speechToText.recognize(_config, audio).then(
       (value) {
-        for (gcs.WordInfo wi in value.results.first.alternatives.first.words) {
-          int startTimeSec = wi.startTime.seconds.toInt() * 1000000;
-          int startTimeMicroSec = wi.startTime.nanos ~/ 1000 - kSpeechConstant;
-          int endTimeSec = wi.endTime.seconds.toInt() * 1000000;
-          int endTimeMicroSec = wi.endTime.nanos ~/ 1000 + kSpeechConstant;
-          transcribedWords.add(
-            TranscribedWordWidget(
-                text: wi.word, startTime: startTimeSec + startTimeMicroSec, endTime: endTimeSec + endTimeMicroSec),
-          );
+        int iter = 0;
+        for (gcs.SpeechRecognitionResult results in value.results) {
+          for (gcs.WordInfo wi in results.alternatives.first.words) {
+            int startTimeSec = wi.startTime.seconds.toInt() * 1000000;
+            int startTimeMicroSec =
+                wi.startTime.nanos ~/ 1000 - kSpeechConstant;
+            int endTimeSec = wi.endTime.seconds.toInt() * 1000000;
+            int endTimeMicroSec = wi.endTime.nanos ~/ 1000 + kSpeechConstant;
+            Provider.of<TranscribedWords>(context, listen: false).addWord(
+              TranscribedWord(
+                text: wi.word,
+                startTime: startTimeSec + startTimeMicroSec,
+                endTime: endTimeSec + endTimeMicroSec,
+                order: iter++,
+                projectName: projectName,
+              ),
+            );
+          }
         }
+        Provider.of<TranscribedWords>(context, listen: false).runNotifyListeners();
       },
     );
   }
-
-// Future<void> _copyFileFromAssets(String name) async {
-//   // var data = await rootBundle.load('assets/$name');
-//   // final directory = await getApplicationDocumentsDirectory();
-//   // final path = directory.path + '/$name';
-//   // await File(path).writeAsBytes(
-//   //     data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes));
-// }
-//
-// Future<Stream<List<int>>> _getAudioStream(String path) async {
-//   if (!File(path).existsSync()) {
-//     await _copyFileFromAssets(path);
-//   }
-//   return File(path).openRead();
-// }
-
-// Future<Stream> getStream(String path) async {
-//   return _speechToText.streamingRecognize(
-//     StreamingRecognitionConfig(config: _config, interimResults: true),
-//     await _getAudioStream(path),
-//   );
-// }
 }
-
-/*
-Obsługa stream, która nie do końca działa
-Stream responseStream = await stt.getStream('/data/user/0/pl.kacperzajac.mova/app_flutter/out_audio.wav');
-responseStream.listen((data) {
-  print('transcript started from file');
-  print(data);
-  setState(() {
-    print(data.results.map((e) => e.alternatives.first.transcript).join('\n'));
-    _transcript =
-        data.results.map((e) => e.alternatives.first.transcript).join('\n');
-  });
-}, onDone: () {
-  print(_transcript);
-  setState(() {
-    _recognizing = false;
-  });
-}, onError: (error) {
-  print(error);
-});
- */

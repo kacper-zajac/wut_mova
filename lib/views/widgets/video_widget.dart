@@ -1,5 +1,6 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:mova/model/video_converter.dart';
 import 'package:mova/provider/file_path.dart';
 import 'package:mova/views/widgets/video_item.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +8,10 @@ import 'package:video_player/video_player.dart';
 import 'dart:io';
 
 class VideoWidget extends StatefulWidget {
+  final String projectName;
+
+  VideoWidget(this.projectName);
+
   @override
   State<VideoWidget> createState() => _VideoWidgetState();
 }
@@ -14,7 +19,6 @@ class VideoWidget extends StatefulWidget {
 class _VideoWidgetState extends State<VideoWidget> {
   List<VideoPlayerController> _videoPlayerController = [];
   bool _loading = false;
-  late String _filePath;
 
   Future<void> getVideo() async {
     setState(() {
@@ -25,12 +29,15 @@ class _VideoWidgetState extends State<VideoWidget> {
         .pickFiles(type: FileType.video, allowMultiple: false);
 
     if (result != null && result.files.single.path != null) {
-      _filePath = result.files.single.path!;
-      print(_filePath);
-      Provider.of<FilePath>(context, listen: false).setVideoPath(_filePath);
-      _videoPlayerController.add(VideoPlayerController.file(File(_filePath)));
-      _videoPlayerController.first.initialize();
+      VideoConverter converter = VideoConverter();
+      converter.createVidCopy(
+          context, result.files.single.path!, widget.projectName);
     }
+  }
+
+  void initializePlayer(String filePath) {
+    _videoPlayerController.add(VideoPlayerController.file(File(filePath)));
+    _videoPlayerController.first.initialize();
 
     setState(() {
       _loading = false;
@@ -39,6 +46,10 @@ class _VideoWidgetState extends State<VideoWidget> {
 
   @override
   Widget build(BuildContext context) {
+    String? _filePath = Provider.of<VideoPath>(context, listen: true).videoPath;
+    if(_filePath != null && _videoPlayerController.isEmpty) {
+      initializePlayer(_filePath);
+    }
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -46,7 +57,8 @@ class _VideoWidgetState extends State<VideoWidget> {
           Flexible(
             child: Container(
               child: _videoPlayerController.length == 1
-                  ? VideoItem(videoPlayerController: _videoPlayerController.first)
+                  ? VideoItem(
+                      videoPlayerController: _videoPlayerController.first)
                   : (_loading == false
                       ? TextButton(
                           onPressed: () async {
@@ -63,12 +75,18 @@ class _VideoWidgetState extends State<VideoWidget> {
             child: Container(
               child: TextButton(
                 onPressed: () {
-                  _videoPlayerController.first.dispose();
-                  setState(() {
-                    _videoPlayerController.removeAt(0);
-                  });
-                  Provider.of<FilePath>(context, listen: false)
-                      .setVideoPath(null);
+                  if (_videoPlayerController.isNotEmpty) {
+                    _videoPlayerController.first.dispose();
+                    setState(() {
+                      _loading = false;
+
+                      _videoPlayerController
+                          .remove(_videoPlayerController.first);
+                    });
+                    File(_filePath!).delete();
+                    Provider.of<VideoPath>(context, listen: false)
+                        .setVideoPath(null);
+                  }
                 },
                 child: const Text('reset'),
               ),

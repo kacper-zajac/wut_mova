@@ -20,3 +20,9 @@ const kTranscribedTextActive = TextStyle(
     fontSize: 15.0
 );
 const int kSpeechConstant = 150000;
+const String kWorkDirectoryName = 'project_files';
+const String kAudioFileName = 'out_audio.wav';
+const String kVideoFileName = 'out_video.mp4';
+const String kVideoWordName = 'word';
+double kWordBoxHeight = 45.0;
+double kWordBoxWidth = 70.0;

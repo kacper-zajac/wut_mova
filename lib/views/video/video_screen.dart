@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:mova/provider/file_path.dart';
+import 'package:mova/provider/transcribed_words.dart';
 import 'package:mova/provider/video_timer.dart';
 import 'package:mova/views/widgets/transcript_widget.dart';
 import 'package:mova/views/widgets/video_widget.dart';
@@ -11,10 +12,14 @@ class VideoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final _projectName = ModalRoute.of(context)!.settings.arguments as String;
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider<FilePath>(
-          create: (context) => FilePath(),
+        ChangeNotifierProvider<VideoPath>(
+          create: (context) => VideoPath(),
+        ),
+        ChangeNotifierProvider<TranscribedWords>(
+          create: (context) => TranscribedWords(),
         ),
         ChangeNotifierProvider<VideoTimer>(
           create: (context) => VideoTimer(),
@@ -26,8 +31,8 @@ class VideoScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              VideoWidget(),
-              TranscriptWidget(),
+              VideoWidget(_projectName),
+              TranscriptWidget(_projectName),
             ],
           ),
         ),
