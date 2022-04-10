@@ -39,7 +39,7 @@ class MenuScreen extends StatelessWidget {
     return _projects;
   }
 
-  Future<void> newProject(BuildContext context) async {
+  Future<void> openProject(BuildContext context) async {
     if (_appDir == null) await getAppDirectory();
     String? title = await openDialog(context);
 
@@ -63,6 +63,37 @@ class MenuScreen extends StatelessWidget {
     File(projDirectory + '/config').writeAsString(jsonEncode(jsonString));
 
     Navigator.pushNamed(context, VideoScreen.id, arguments: projDirectory);
+  }
+
+  Future<void> newProject(BuildContext context) async {
+    if (_appDir == null) await getAppDirectory();
+    String? title = await openDialog(context);
+
+    _controller.clear();
+
+    if (title == null || title.isEmpty) {
+      return;
+    }
+
+    String projDirectory = _appDir!.path + '/' + title;
+    Directory(projDirectory).createSync();
+    String dateNow = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+
+    var jsonString = {
+      "projName": title,
+      "projPath": projDirectory,
+      "createDate": dateNow,
+      "lastModified": dateNow
+    };
+
+    final data = await json.decode(await File(projDirectory + '/config').readAsString());
+
+    if(data["projPath"] != null) {
+      Navigator.pushNamed(context, VideoScreen.id, arguments: data["projPath"]);
+      return;
+    }
+
+    // error popup - file corrupted
   }
 
   @override
@@ -100,8 +131,11 @@ class MenuScreen extends StatelessWidget {
                                   'Create new',
                                   Icons.video_call_outlined,
                                   () async => await newProject(context)),
-                              menuButton('Remove existing',
-                                  Icons.delete_forever_outlined, () => {}),
+                              menuButton(
+                                'Remove existing',
+                                Icons.delete_forever_outlined,
+                                () => {},
+                              ),
                             ],
                           ),
                         )
@@ -122,13 +156,13 @@ class MenuScreen extends StatelessWidget {
                 future: _getProjects(),
                 builder: (context, AsyncSnapshot snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   } else if (snapshot.hasError) {
                     print(snapshot.error);
                     return Text(snapshot.error.toString());
                   } else if (snapshot.data == null ||
                       snapshot.data.length == 0) {
-                    return Expanded(
+                    return const Expanded(
                       child: Center(
                         child: Text(
                           'Create a project first!',
