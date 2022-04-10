@@ -1,6 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:mova/constants.dart';
 import 'package:mova/views/video/video_screen.dart';
 import 'package:mova/views/widgets/reusable_list_tile.dart';
@@ -8,32 +9,61 @@ import 'package:mova/views/widgets/reusable_tile.dart';
 import 'package:path_provider/path_provider.dart';
 
 class MenuScreen extends StatelessWidget {
+  Directory? _appDir;
   static const id = 'menuscreen';
   final TextEditingController _controller = TextEditingController();
 
-  final List<String> _projectTitles = [
-    'example one',
-    'example two',
-    'example three',
-    'example four'
-  ];
+  Future<void> getAppDirectory() async {
+    _appDir = await getApplicationDocumentsDirectory();
+  }
 
-  final _projects = [
-    ReusableListTile(
-        text: 'example one', date: '12-42-1231', icon: Icons.ac_unit),
-    ReusableListTile(
-        text: 'example two', date: '12-42-1231', icon: Icons.padding),
-    ReusableListTile(
-        text: 'example three',
-        date: '12-42-1231',
-        icon: Icons.access_alarm_outlined),
-    ReusableListTile(
-        text: 'example four',
-        date: '12-42-1231',
-        icon: Icons.access_time_sharp),
-    ReusableListTile(
-        text: 'example five', date: '12-42-1231', icon: Icons.details),
-  ];
+  final List<String> _projectTitles = [];
+
+  Future<List<ReusableTile>> _getProjects() async {
+    List<ReusableTile> _projects = [];
+    if (_appDir == null) await getAppDirectory();
+    final List<FileSystemEntity> entities = await _appDir!.list().toList();
+    final Iterable<Directory> folders = entities.whereType<Directory>();
+    for (final folder in folders) {
+      File configFile = File(folder.path + '/config');
+      if (await configFile.exists()) {
+        Map<String, dynamic> config =
+            jsonDecode(await configFile.readAsString());
+        _projectTitles.add(config['projName']!);
+        _projects.add(ReusableListTile(
+            text: config['projName']!,
+            date: config['createDate']!,
+            icon: Icons.ac_unit));
+      }
+    }
+    return _projects;
+  }
+
+  Future<void> newProject(BuildContext context) async {
+    if (_appDir == null) await getAppDirectory();
+    String? title = await openDialog(context);
+
+    _controller.clear();
+
+    if (title == null || title.isEmpty) {
+      return;
+    }
+
+    String projDirectory = _appDir!.path + '/' + title;
+    Directory(projDirectory).createSync();
+    String dateNow = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+
+    var jsonString = {
+      "projName": title,
+      "projPath": projDirectory,
+      "createDate": dateNow,
+      "lastModified": dateNow
+    };
+
+    File(projDirectory + '/config').writeAsString(jsonEncode(jsonString));
+
+    Navigator.pushNamed(context, VideoScreen.id, arguments: projDirectory);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,60 +96,12 @@ class MenuScreen extends StatelessWidget {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              TextButton(
-                                onPressed: () async {
-                                  String? title = await openDialog(context);
-                                  _controller.clear();
-                                  if (title == null || title.isEmpty) {
-                                    return;
-                                  }
-                                  Directory dir = await getApplicationDocumentsDirectory();
-                                  Directory(dir.path + '/' + title).createSync();
-                                  Navigator.pushNamed(context, VideoScreen.id,
-                                      arguments: title);
-                                },
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: const [
-                                    CircleAvatar(
-                                      backgroundColor: Colors.lightBlueAccent,
-                                      child: Icon(
-                                        Icons.video_call_outlined,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsets.only(top: 12.0),
-                                      child: Text(
-                                        'Create new',
-                                        style: kBoxBottomTextStyle,
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: () {},
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: const [
-                                    CircleAvatar(
-                                      backgroundColor: Colors.lightBlueAccent,
-                                      child: Icon(
-                                        Icons.edit_outlined,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsets.only(top: 12.0),
-                                      child: Text(
-                                        'Edit existing',
-                                        style: kBoxBottomTextStyle,
-                                      ),
-                                    )
-                                  ],
-                                ),
-                              )
+                              menuButton(
+                                  'Create new',
+                                  Icons.video_call_outlined,
+                                  () async => await newProject(context)),
+                              menuButton('Remove existing',
+                                  Icons.delete_forever_outlined, () => {}),
                             ],
                           ),
                         )
@@ -136,10 +118,32 @@ class MenuScreen extends StatelessWidget {
                   style: kBoxTextStyle.copyWith(fontSize: 20.0),
                 ),
               ),
-              Expanded(
-                child: ListView(
-                  children: _projects,
-                ),
+              FutureBuilder(
+                future: _getProjects(),
+                builder: (context, AsyncSnapshot snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    print(snapshot.error);
+                    return Text(snapshot.error.toString());
+                  } else if (snapshot.data == null ||
+                      snapshot.data.length == 0) {
+                    return Expanded(
+                      child: Center(
+                        child: Text(
+                          'Create a project first!',
+                          style: kBoxTextStyle,
+                        ),
+                      ),
+                    );
+                  } else {
+                    return Expanded(
+                      child: ListView(
+                        children: snapshot.data,
+                      ),
+                    );
+                  }
+                },
               ),
             ],
           ),
@@ -179,11 +183,39 @@ class MenuScreen extends StatelessWidget {
                     break;
                   }
                 }
-                if (!error) Navigator.pop(context, _controller.text.replaceAll(' ', '_'));
+                if (!error) {
+                  Navigator.pop(context, _controller.text.replaceAll(' ', '_'));
+                }
               },
               child: const Text('Confirm'),
             ),
           ],
         ),
       );
+
+  TextButton menuButton(
+      String buttonText, IconData iconData, Function() onPressed) {
+    return TextButton(
+      onPressed: onPressed,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            backgroundColor: Colors.lightBlueAccent,
+            child: Icon(
+              iconData,
+              color: Colors.white,
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(top: 12.0),
+            child: Text(
+              buttonText,
+              style: kBoxBottomTextStyle,
+            ),
+          )
+        ],
+      ),
+    );
+  }
 }

@@ -53,7 +53,7 @@ class _VideoItemState extends State<VideoItem> {
 
   @override
   void dispose() {
-    super.dispose();
     _chewieController.dispose();
+    super.dispose();
   }
 }

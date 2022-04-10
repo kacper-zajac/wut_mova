@@ -1,25 +1,20 @@
-import 'dart:io';
-import 'package:mova/model/video_converter.dart';
-
 class TranscribedWord {
   TranscribedWord({
     required this.text,
     required this.startTime,
     required this.endTime,
     required this.order,
-    required this.projectName
+    required this.projectDirectory
   }) {
-    initFile();
+    currentStartTime = startTime;
+    currentEndTime = endTime;
   }
 
-  Future<void> initFile() async {
-    videoFile = File(await VideoConverter().extractWord(this));
-  }
-
+  late int currentStartTime;
+  late int currentEndTime;
   final int order;
   final int startTime;
   final int endTime;
   final String text;
-  final String projectName;
-  late File videoFile;
+  final String projectDirectory;
 }

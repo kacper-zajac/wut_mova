@@ -14,6 +14,7 @@ class SpeechToText1 {
   late ServiceAccount _serviceAccount;
   late SpeechToText _speechToText;
   late RecognitionConfig _config;
+  bool isInitialized = false;
 
   SpeechToText1();
 
@@ -33,17 +34,16 @@ class SpeechToText1 {
         audioChannelCount: 2,
         enableWordTimeOffsets: true,
         languageCode: 'en-US');
+    isInitialized = true;
   }
 
-  Future<void> getTranscript(BuildContext context, String audioPath, String projectName) async {
-    await init();
-
-    Directory dir = await getApplicationDocumentsDirectory();
-    Directory(dir.path + '/' + projectName + '/' + kWorkDirectoryName)
+  Future<void> getTranscript(BuildContext context, String audioPath, String projectDirectory) async {
+    if (!isInitialized) await init();
+    Directory(projectDirectory + '/' + kWorkDirectoryName)
         .createSync();
 
     final audio = File(audioPath).readAsBytesSync().toList();
-
+    Provider.of<TranscribedWords>(context, listen: false).clearList();
     await _speechToText.recognize(_config, audio).then(
       (value) {
         int iter = 0;
@@ -51,22 +51,22 @@ class SpeechToText1 {
           for (gcs.WordInfo wi in results.alternatives.first.words) {
             int startTimeSec = wi.startTime.seconds.toInt() * 1000000;
             int startTimeMicroSec =
-                wi.startTime.nanos ~/ 1000 - kSpeechConstant;
+                wi.startTime.nanos ~/ 1000;
             int endTimeSec = wi.endTime.seconds.toInt() * 1000000;
-            int endTimeMicroSec = wi.endTime.nanos ~/ 1000 + kSpeechConstant;
-            Provider.of<TranscribedWords>(context, listen: false).addWord(
+            int endTimeMicroSec = wi.endTime.nanos ~/ 1000;
+                Provider.of<TranscribedWords>(context, listen: false).addWord(
               TranscribedWord(
                 text: wi.word,
                 startTime: startTimeSec + startTimeMicroSec,
                 endTime: endTimeSec + endTimeMicroSec,
                 order: iter++,
-                projectName: projectName,
+                projectDirectory: projectDirectory,
               ),
             );
           }
         }
         Provider.of<TranscribedWords>(context, listen: false).runNotifyListeners();
-      },
+        },
     );
   }
 }

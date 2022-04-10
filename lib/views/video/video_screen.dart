@@ -12,7 +12,7 @@ class VideoScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _projectName = ModalRoute.of(context)!.settings.arguments as String;
+    final _projectDirectory = ModalRoute.of(context)!.settings.arguments as String;
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<VideoPath>(
@@ -31,8 +31,8 @@ class VideoScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              VideoWidget(_projectName),
-              TranscriptWidget(_projectName),
+              VideoWidget(_projectDirectory),
+              TranscriptWidget(_projectDirectory),
             ],
           ),
         ),

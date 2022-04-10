@@ -7,8 +7,8 @@ import 'package:provider/provider.dart';
 
 class TranscribedWordWidget extends StatelessWidget {
   TranscribedWordWidget({required this.transcribedWidget}) {
-    startHighlightTime = transcribedWidget.startTime - kSpeechConstant;
-    endHighlightTime = transcribedWidget.endTime + kSpeechConstant;
+    startHighlightTime = transcribedWidget.currentStartTime - kSpeechConstant;
+    endHighlightTime = transcribedWidget.currentEndTime + kSpeechConstant;
   }
 
   final TranscribedWord transcribedWidget;
@@ -40,8 +40,11 @@ class TranscribedWordWidget extends StatelessWidget {
             menuItem(Icons.cut_rounded, () => {}),
             menuItem(
               Icons.delete_rounded,
-              () => Provider.of<TranscribedWords>(context, listen: false)
-                  .deleteWord(transcribedWidget),
+              () {
+                Provider.of<TranscribedWords>(context, listen: false)
+                    .deleteWord(transcribedWidget);
+                Navigator.of(context).pop();
+              },
             ),
           ],
         );
