@@ -2,25 +2,41 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:mova/views/menu/menu_screen.dart';
 import 'package:mova/views/menu/reusable_list_tile.dart';
 import 'package:mova/views/widgets/utils.dart';
 
 import '../../constants.dart';
 
 class RecentProjects extends StatefulWidget {
-  List<String> projectTitles;
+  Function callback;
 
-  RecentProjects({Key? key, required this.projectTitles}) : super(key: key);
+  RecentProjects({Key? key, required this.callback}) : super(key: key);
 
   @override
-  State<RecentProjects> createState() => _RecentProjectsState();
+  State<RecentProjects> createState() => RecentProjectsState();
 }
 
-class _RecentProjectsState extends State<RecentProjects> {
+class RecentProjectsState extends State<RecentProjects> {
   Directory? _appDir;
   List<ReusableListTile>? _projects;
+  late DatabaseType currentDatabaseType;
 
-  Future<List<ReusableListTile>> _getProjects() async {
+  Future<List<ReusableListTile>> _getProjects(DatabaseType databaseType) {
+    switch (databaseType) {
+      case DatabaseType.local:
+        return _getProjectsLocal();
+      case DatabaseType.cloud:
+        return Future.value(
+          List<ReusableListTile>.generate(
+            0,
+            (index) => ReusableListTile(configFile: File(''), projPath: 'projPath'),
+          ),
+        );
+    }
+  }
+
+  Future<List<ReusableListTile>> _getProjectsLocal() async {
     List<ReusableListTile> _projects = [];
     List<String> _projectTitles = [];
     _appDir ??= await Utils.getAppDirectory();
@@ -39,20 +55,21 @@ class _RecentProjectsState extends State<RecentProjects> {
         );
       }
     }
-    widget.projectTitles = _projectTitles;
+    widget.callback(_projectTitles);
     return _projects;
   }
 
-  Future<void> initScreen() async {
-    _projects = await _getProjects();
+  Future<void> refreshList(DatabaseType type) async {
+    currentDatabaseType = type;
+    _projects = await _getProjects(type);
     setState(() {});
   }
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    initScreen();
+    currentDatabaseType = DatabaseType.local;
+    refreshList(currentDatabaseType);
   }
 
   @override
@@ -60,22 +77,24 @@ class _RecentProjectsState extends State<RecentProjects> {
     if (_projects == null) {
       return const Center(child: CircularProgressIndicator());
     } else if (_projects!.isEmpty) {
-      return Column(
-        mainAxisSize: MainAxisSize.max,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text(
-            'No projects to preview.',
-            style: kBoxTextStyle,
-          ),
-          TextButton(
-            onPressed: () => initScreen(),
-            child: const Text(
-              'refresh',
+      return Expanded(
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'No projects to preview.',
               style: kBoxTextStyle,
             ),
-          )
-        ],
+            TextButton(
+              onPressed: () => refreshList(currentDatabaseType),
+              child: const Text(
+                'refresh',
+                style: kBoxTextStyle,
+              ),
+            )
+          ],
+        ),
       );
     } else {
       return Expanded(
@@ -88,7 +107,7 @@ class _RecentProjectsState extends State<RecentProjects> {
           ),
           onRefresh: () {
             return Future.delayed(const Duration(seconds: 1), () async {
-              await initScreen();
+              await refreshList(currentDatabaseType);
             });
           },
         ),

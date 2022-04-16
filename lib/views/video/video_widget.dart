@@ -7,6 +7,7 @@ import 'package:mova/model/video_converter.dart';
 import 'package:mova/provider/file_path.dart';
 import 'package:mova/provider/transcribed_words.dart';
 import 'package:mova/views/video/video_item.dart';
+import 'package:mova/views/widgets/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
@@ -128,16 +129,20 @@ class _VideoWidgetState extends State<VideoWidget> {
             children: [
               Flexible(
                 child: TextButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_currentVideoPath != null) {
-                      cleanProjectDirectory();
-                      disposeVideoController();
-                      Provider.of<VideoPath>(context, listen: false).setVideoPath(null);
-                      Provider.of<TranscribedWords>(context, listen: false).clearList();
-                      Provider.of<TranscribedWords>(context, listen: false).runNotifyListeners();
+                      bool? alertOutcome = await Utils.showAlertDialog(context,
+                          'Are you sure you\'d like to reset the project?\nThat will delete all the saved data!');
+                      if (alertOutcome ?? false) {
+                        cleanProjectDirectory();
+                        disposeVideoController();
+                        Provider.of<VideoPath>(context, listen: false).setVideoPath(null);
+                        Provider.of<TranscribedWords>(context, listen: false).clearList();
+                        Provider.of<TranscribedWords>(context, listen: false).runNotifyListeners();
+                      }
                     }
                   },
-                  child: const Text('reset / get new video'),
+                  child: const Text('reset the project'),
                 ),
               ),
             ],

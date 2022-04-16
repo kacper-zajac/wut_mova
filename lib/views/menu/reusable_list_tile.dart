@@ -7,7 +7,7 @@ import 'package:mova/views/widgets/reusable_tile.dart';
 import 'package:mova/views/widgets/utils.dart';
 
 import '../../constants.dart';
-import 'main_screen.dart';
+import 'work_screen.dart';
 
 class ReusableListTile extends StatefulWidget {
   const ReusableListTile({Key? key, required configFile, required this.projPath}) : super(key: key);
@@ -36,7 +36,7 @@ class _ReusableListTileState extends State<ReusableListTile> {
 
   void openProject(BuildContext context) {
     if (Directory(widget.projPath).existsSync()) {
-      Navigator.pushNamed(context, MainScreen.id, arguments: widget.projPath);
+      Navigator.pushNamed(context, WorkScreen.id, arguments: widget.projPath);
     } else {
       setState(() {
         _error = true;
@@ -46,7 +46,7 @@ class _ReusableListTileState extends State<ReusableListTile> {
 
   void deleteProject(BuildContext context) {
     if (Directory(widget.projPath).existsSync()) {
-      Navigator.pushNamed(context, MainScreen.id, arguments: widget.projPath);
+      Navigator.pushNamed(context, WorkScreen.id, arguments: widget.projPath);
     } else {
       setState(() {
         _error = true;

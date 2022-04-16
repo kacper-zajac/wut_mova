@@ -44,6 +44,7 @@ class DefaultFirebaseOptions {
     appId: '1:572074800008:android:3ef1a46b78ede8f324003d',
     messagingSenderId: '572074800008',
     projectId: 'wut-mova-344119',
+    databaseURL: 'https://wut-mova-344119-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'wut-mova-344119.appspot.com',
   );
 
@@ -52,7 +53,9 @@ class DefaultFirebaseOptions {
     appId: '1:572074800008:ios:d891074fa5469d7c24003d',
     messagingSenderId: '572074800008',
     projectId: 'wut-mova-344119',
+    databaseURL: 'https://wut-mova-344119-default-rtdb.europe-west1.firebasedatabase.app',
     storageBucket: 'wut-mova-344119.appspot.com',
+    androidClientId: '572074800008-73f03uj8p09s3dhmu0qmsdd3jtt8iul9.apps.googleusercontent.com',
     iosClientId: '572074800008-kpl0kc44u7vqb7o8iq5rqvs98vgjugrc.apps.googleusercontent.com',
     iosBundleId: 'pl.kacperzajac.mova',
   );

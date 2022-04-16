@@ -8,6 +8,10 @@ import 'package:mova/provider/transcribed_words.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
+//TODO take care of Utils split them
+
+// TODO add cloud getting and sending and deleting
+
 class Utils {
   // Data Saving
   static void retrieveDataIfSaved(BuildContext context, String projectPath) async {
@@ -23,7 +27,7 @@ class Utils {
 
   static bool handleUninitialized(BuildContext context, String projectPath) {
     if (Provider.of<VideoPath>(context, listen: false).videoPath == null) {
-      if (Directory(projectPath).existsSync()) {
+      if (Directory(projectPath).existsSync() && !File(projectPath + kSaveFileName).existsSync()) {
         Directory(projectPath).deleteSync(recursive: true);
         return true;
       }
@@ -41,14 +45,16 @@ class Utils {
     };
 
     String toWrite = json.encode(jsonMap);
-    if (await File(projectPath + kSaveFileName).readAsString() == toWrite) {
+    if (File(projectPath + kSaveFileName).existsSync() &&
+        await File(projectPath + kSaveFileName).readAsString() == toWrite) {
       return null;
     } else {
       return toWrite;
     }
   }
 
-  static Future<bool> saveProgress(BuildContext context, String projectPath, String jsonToWrite) async {
+  static Future<bool> saveProgress(
+      BuildContext context, String projectPath, String jsonToWrite) async {
     try {
       String saveFilePath = projectPath + kSaveFileName;
       if (File(saveFilePath).existsSync()) File(saveFilePath).deleteSync();
@@ -60,6 +66,7 @@ class Utils {
     return true;
   }
 
+  // unused now
   static Future<bool> saveProgressFromScratch(BuildContext context, String projectPath) async {
     try {
       String saveFilePath = projectPath + kSaveFileName;
@@ -82,22 +89,63 @@ class Utils {
 
   // show dialogs
 
-  static Future<bool?> showErrorDialog(BuildContext context, String errorText) async => showDialog(
+  static Future<bool?> showAlertDialog(BuildContext context, String text) async =>
+      await showCustomDialog(
+        context: context,
+        bodyText: text,
+        title: 'Alert!',
+        optionTrue: 'Proceed',
+        optionFalse: 'Cancel',
+      );
+
+  static Future<bool?> showErrorDialog(BuildContext context, String text) async =>
+      await showCustomDialog(
+        context: context,
+        bodyText: text,
+        title: 'Error!',
+        optionTrue: 'Ignore',
+        optionFalse: 'Take me back',
+      );
+
+  static Future<bool?> showCustomDialog({
+    required BuildContext context,
+    required String bodyText,
+    required String title,
+    required String optionTrue,
+    required String optionFalse,
+  }) async =>
+      showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text("Error!"),
-            content: Text(errorText),
+            title: Text(title),
+            content: Text(bodyText),
             actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.of(context).pop(true),
-                child: const Text("Ignore"),
+                child: Text(optionTrue),
               ),
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
-                child: const Text("Take me back"),
+                child: Text(optionFalse),
               ),
             ],
+          );
+        },
+      );
+
+  static Future<bool?> showDialogSelfExpire(
+          {required BuildContext context, required String title}) async =>
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Padding(
+              padding: EdgeInsets.all(10.0),
+              child: Center(
+                child: Text(title),
+              ),
+            ),
           );
         },
       );
@@ -164,7 +212,7 @@ class Utils {
         ),
       );
 
-  static Future<bool?> showDialogMainScreen(outerContext, projectPath) async {
+  static Future<bool?> showDialogWorkScreen(outerContext, projectPath) async {
     String? jsonToSave = await getSaveFileJsonString(outerContext, projectPath);
     if (jsonToSave == null) return Future<bool>.value(true);
     return showDialog<bool>(

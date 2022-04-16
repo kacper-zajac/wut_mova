@@ -7,8 +7,8 @@ import 'package:mova/views/video/video_widget.dart';
 import 'package:mova/views/widgets/utils.dart';
 import 'package:provider/provider.dart';
 
-class MainScreen extends StatelessWidget {
-  static const id = 'mainscreen';
+class WorkScreen extends StatelessWidget {
+  static const id = 'workscreen';
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +30,7 @@ class MainScreen extends StatelessWidget {
         return WillPopScope(
           onWillPop: () async {
             if (Utils.handleUninitialized(context, _projectDirectory)) return true;
-            bool? exit = await Utils.showDialogMainScreen(context, _projectDirectory);
+            bool? exit = await Utils.showDialogWorkScreen(context, _projectDirectory);
             return exit ?? false;
           },
           child: Scaffold(

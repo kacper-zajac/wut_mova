@@ -57,6 +57,7 @@ class TranscribedWordWidget extends StatelessWidget {
           context: context,
           position: relRectSize,
           items: [
+            // TODO add other transcript actions
             menuItem(Icons.copy_all_rounded, () => {}),
             menuItem(Icons.cut_rounded, () => {}),
             menuItem(

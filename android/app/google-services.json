@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "572074800008",
+    "firebase_url": "https://wut-mova-344119-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "wut-mova-344119",
     "storage_bucket": "wut-mova-344119.appspot.com"
   },
@@ -13,6 +14,14 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "572074800008-73f03uj8p09s3dhmu0qmsdd3jtt8iul9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "pl.kacperzajac.mova",
+            "certificate_hash": "dd9758f0c3896ab7aa4813492b17d708602f3c07"
+          }
+        },
         {
           "client_id": "572074800008-0k26pgsojn6c5pjlnm0g83dcd50i1ttr.apps.googleusercontent.com",
           "client_type": 3
@@ -29,6 +38,13 @@
             {
               "client_id": "572074800008-0k26pgsojn6c5pjlnm0g83dcd50i1ttr.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "572074800008-kpl0kc44u7vqb7o8iq5rqvs98vgjugrc.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "pl.kacperzajac.mova"
+              }
             }
           ]
         }
