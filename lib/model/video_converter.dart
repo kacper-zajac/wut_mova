@@ -1,21 +1,22 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
+import 'package:mova/constants.dart';
 import 'package:mova/model/speech_to_text.dart';
 import 'package:mova/model/transcribed_word.dart';
 import 'package:mova/provider/file_path.dart';
 import 'package:provider/provider.dart';
-import 'package:mova/constants.dart';
 
 import '../constants.dart';
 
 class VideoConverter {
   final FlutterFFmpeg _flutterFFmpeg = FlutterFFmpeg();
 
-  Future<void> toMp3(
-      BuildContext context, String path, String projectDirectory) async {
-    String filePath = projectDirectory + '/' + kAudioFileName;
+  Future<void> toMp3(BuildContext context, String path, String projectDirectory) async {
+    String filePath = projectDirectory + kAudioFileName;
+    if (File(filePath).existsSync()) File(filePath).deleteSync();
     await _flutterFFmpeg
         .execute("-i $path -q:a 0 -map a -filter:a \"volume=1.5\" $filePath")
         .then((_) {
@@ -23,33 +24,37 @@ class VideoConverter {
     });
   }
 
-  Future<String> createVidCopy(
-      BuildContext context, String path, String projectDirectory) async {
-    String filePath = projectDirectory + '/' + kVideoFileName;
+  Future<void> createThumbnail(String filePath, String projectDirectory) async {
+    String thumbnailPath = projectDirectory + kThumbnailFileName;
+    if (File(thumbnailPath).existsSync()) File(thumbnailPath).deleteSync();
     await _flutterFFmpeg
-        .execute("-i $path -vf scale=640:480 $filePath")
-        .then((_) async {
-      Provider.of<VideoPath>(context, listen: false).setVideoPath(filePath);
-      toMp3(context, filePath, projectDirectory);
-    });
-    return filePath;
+        .execute("-ss 00:00:00.000  -i $filePath -vframes 1 $thumbnailPath")
+        .then((_) {});
   }
 
-  Future<String> extractChunk(int order, String workDir, String projDirectory,
-      int chunkStartTime, int chunkEndTime) async {
-    String videoPath = projDirectory + '/' + kVideoFileName;
+  Future<void> createVidCopy(BuildContext context, String path, String projectDirectory) async {
+    String filePath = projectDirectory + kVideoFileName;
+    if (File(filePath).existsSync()) File(filePath).deleteSync();
+    await _flutterFFmpeg.execute("-i $path -vf scale=640:480 $filePath").then((_) async {
+      Provider.of<VideoPath>(context, listen: false).setVideoPath(filePath);
+      toMp3(context, filePath, projectDirectory);
+      createThumbnail(filePath, projectDirectory);
+    });
+  }
+
+  Future<String> extractChunk(
+      int order, String workDir, String projDirectory, int chunkStartTime, int chunkEndTime) async {
+    String videoPath = projDirectory + kVideoFileName;
     String filePath = workDir + '/temp' + order.toString() + '.mp4';
     String startTime = convertTimeToString(chunkStartTime);
     String endTime = convertTimeToString(chunkEndTime);
-    await _flutterFFmpeg
-        .execute("-ss $startTime -to $endTime -i $videoPath -c copy $filePath");
+    await _flutterFFmpeg.execute("-ss $startTime -to $endTime -i $videoPath -c copy $filePath");
     return filePath;
   }
 
   Future<String> extractWord(TranscribedWord tw) async {
-    String videoPath = tw.projectDirectory + '/' + kVideoFileName;
+    String videoPath = tw.projectDirectory + kVideoFileName;
     String filePath = tw.projectDirectory +
-        '/' +
         kWorkDirectoryName +
         '/' +
         ((tw.text == '_') ? kVideoBreakName : kVideoWordName) +
@@ -58,8 +63,7 @@ class VideoConverter {
         '.mp4';
     String startTime = convertTimeToString(tw.startTime);
     String endTime = convertTimeToString(tw.endTime);
-    await _flutterFFmpeg
-        .execute("-ss $startTime -to $endTime -i $videoPath -c copy $filePath");
+    await _flutterFFmpeg.execute("-ss $startTime -to $endTime -i $videoPath -c copy $filePath");
     return filePath;
   }
 
@@ -74,13 +78,9 @@ class VideoConverter {
     return stringTime;
   }
 
-  Future<void> combineVideo(String projectDirectory,
-      List<TranscribedWord> words, BuildContext context) async {
-    String myPath = projectDirectory +
-        '/' +
-        kWorkDirectoryName +
-        '/combined_' +
-        kVideoWordName;
+  Future<void> combineVideo(
+      String projectDirectory, List<TranscribedWord> words, BuildContext context) async {
+    String myPath = projectDirectory + kWorkDirectoryName + '/combined_' + kVideoWordName;
 
     String filePathTxt = myPath + '.txt';
     String filePath = myPath + '.mp4';
@@ -105,9 +105,9 @@ class VideoConverter {
     });
   }
 
-  Future<void> exportVideo(String projectDirectory, List<TranscribedWord> words,
-      BuildContext context) async {
-    String buildDirPath = projectDirectory + '/' + kWorkDirectoryName + '/temp';
+  Future<void> exportVideo(
+      String projectDirectory, List<TranscribedWord> words, BuildContext context) async {
+    String buildDirPath = projectDirectory + kWorkDirectoryName + '/temp';
 
     Directory(buildDirPath).createSync();
 
@@ -128,8 +128,7 @@ class VideoConverter {
       } else {
         if (filesToConcat != '') filesToConcat += '\n';
         filesToConcat += 'file \'' +
-            await extractChunk(
-                order++, buildDirPath, projectDirectory, startTime, endTime!) +
+            await extractChunk(order++, buildDirPath, projectDirectory, startTime, endTime!) +
             '\'';
         startTime = tw.startTime;
         endTime = tw.endTime;
@@ -140,14 +139,12 @@ class VideoConverter {
     if (startTime != null) {
       if (filesToConcat != '') filesToConcat += '\n';
       filesToConcat += 'file \'' +
-          await extractChunk(
-              order++, buildDirPath, projectDirectory, startTime, endTime!) +
+          await extractChunk(order++, buildDirPath, projectDirectory, startTime, endTime!) +
           '\'';
     }
 
     String filePathTxt = buildDirPath + '/temp_combined.txt';
-    String filePath =
-        projectDirectory + '/' + kWorkDirectoryName + '/exported.mp4';
+    String filePath = projectDirectory + kWorkDirectoryName + '/exported.mp4';
 
     if (File(filePath).existsSync()) File(filePath).deleteSync();
 

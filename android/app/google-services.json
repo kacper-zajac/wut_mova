@@ -1,33 +1,33 @@
 {
   "project_info": {
-    "project_number": "913180788368",
-    "project_id": "wut-mova",
-    "storage_bucket": "wut-mova.appspot.com"
+    "project_number": "572074800008",
+    "project_id": "wut-mova-344119",
+    "storage_bucket": "wut-mova-344119.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:913180788368:android:6c7f513b2d2e146636fa15",
+        "mobilesdk_app_id": "1:572074800008:android:3ef1a46b78ede8f324003d",
         "android_client_info": {
           "package_name": "pl.kacperzajac.mova"
         }
       },
       "oauth_client": [
         {
-          "client_id": "913180788368-6g5dn7ov1vhsph3ucp08946rqieq3ml6.apps.googleusercontent.com",
+          "client_id": "572074800008-0k26pgsojn6c5pjlnm0g83dcd50i1ttr.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyCCDvsEHCRg_bKorphHs3jaAbloJfDgACM"
+          "current_key": "AIzaSyDR3PyXAEwvWTk2A0bAn8JPgnVKh_YfcoE"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "913180788368-6g5dn7ov1vhsph3ucp08946rqieq3ml6.apps.googleusercontent.com",
+              "client_id": "572074800008-0k26pgsojn6c5pjlnm0g83dcd50i1ttr.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

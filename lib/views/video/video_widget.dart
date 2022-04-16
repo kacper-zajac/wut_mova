@@ -1,13 +1,14 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:mova/constants.dart';
 import 'package:mova/model/video_converter.dart';
 import 'package:mova/provider/file_path.dart';
 import 'package:mova/provider/transcribed_words.dart';
-import 'package:mova/views/widgets/video_item.dart';
+import 'package:mova/views/video/video_item.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
-import 'dart:io';
 
 class VideoWidget extends StatefulWidget {
   final String _projectDirectory;
@@ -28,13 +29,12 @@ class _VideoWidgetState extends State<VideoWidget> {
       _loading = true;
     });
 
-    FilePickerResult? result = await FilePicker.platform
-        .pickFiles(type: FileType.video, allowMultiple: false);
+    FilePickerResult? result =
+        await FilePicker.platform.pickFiles(type: FileType.video, allowMultiple: false);
 
     if (result != null && result.files.single.path != null) {
       VideoConverter converter = VideoConverter();
-      converter.createVidCopy(
-          context, result.files.single.path!, widget._projectDirectory);
+      converter.createVidCopy(context, result.files.single.path!, widget._projectDirectory);
     }
   }
 
@@ -76,9 +76,13 @@ class _VideoWidgetState extends State<VideoWidget> {
     _currentVideoPath = null;
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   void cleanProjectDirectory() async {
-    Directory workDir =
-        Directory(widget._projectDirectory + '/' + kWorkDirectoryName);
+    Directory workDir = Directory(widget._projectDirectory + kWorkDirectoryName);
     Directory projDir = Directory(widget._projectDirectory);
     final List<FileSystemEntity> entities = await projDir.list().toList();
     final Iterable<File> files = entities.whereType<File>();
@@ -96,8 +100,7 @@ class _VideoWidgetState extends State<VideoWidget> {
   Widget build(BuildContext context) {
     String? _filePath = Provider.of<VideoPath>(context, listen: true).videoPath;
     if (_filePath != null) {
-      controllerChange(
-          _filePath, Provider.of<VideoPath>(context, listen: false).isChanged);
+      controllerChange(_filePath, Provider.of<VideoPath>(context, listen: false).isChanged);
       Provider.of<VideoPath>(context, listen: false).handleChange();
     }
     return Expanded(
@@ -129,12 +132,9 @@ class _VideoWidgetState extends State<VideoWidget> {
                     if (_currentVideoPath != null) {
                       cleanProjectDirectory();
                       disposeVideoController();
-                      Provider.of<VideoPath>(context, listen: false)
-                          .setVideoPath(null);
-                      Provider.of<TranscribedWords>(context, listen: false)
-                          .clearList();
-                      Provider.of<TranscribedWords>(context, listen: false)
-                          .runNotifyListeners();
+                      Provider.of<VideoPath>(context, listen: false).setVideoPath(null);
+                      Provider.of<TranscribedWords>(context, listen: false).clearList();
+                      Provider.of<TranscribedWords>(context, listen: false).runNotifyListeners();
                     }
                   },
                   child: const Text('reset / get new video'),

@@ -39,7 +39,7 @@ class SpeechToText1 {
 
   Future<void> getTranscript(BuildContext context, String audioPath, String projectDirectory) async {
     if (!isInitialized) await init();
-    Directory(projectDirectory + '/' + kWorkDirectoryName)
+    Directory(projectDirectory + kWorkDirectoryName)
         .createSync();
 
     final audio = File(audioPath).readAsBytesSync().toList();

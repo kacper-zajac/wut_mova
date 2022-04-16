@@ -41,6 +41,8 @@ dependencies:
   provider: ^6.0.2
   flutter_ffmpeg: ^0.4.2
   intl: ^0.17.0
+  firebase_auth: ^3.3.14
+  firebase_core: ^1.14.1
 
 dev_dependencies:
   flutter_test:

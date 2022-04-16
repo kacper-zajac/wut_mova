@@ -1,12 +1,12 @@
-import 'package:flutter/material.dart';
 import 'package:chewie/chewie.dart';
+import 'package:flutter/material.dart';
 import 'package:mova/provider/video_timer.dart';
+import 'package:mova/views/widgets/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoItem extends StatefulWidget {
-  const VideoItem({required this.videoPlayerController, Key? key})
-      : super(key: key);
+  const VideoItem({required this.videoPlayerController, Key? key}) : super(key: key);
 
   final VideoPlayerController videoPlayerController;
 
@@ -24,11 +24,9 @@ class _VideoItemState extends State<VideoItem> {
       videoPlayerController: widget.videoPlayerController,
       autoInitialize: true,
       errorBuilder: (context, errorMessage) {
-        return Center(
-          child: Text(
-            'Something went wrong. Please try again! ($errorMessage)',
-            style: const TextStyle(color: Colors.white),
-          ),
+        return Utils.centeredText(
+          text: 'Something went wrong. Please try again! ($errorMessage)',
+          style: const TextStyle(color: Colors.white),
         );
       },
     );
@@ -37,6 +35,12 @@ class _VideoItemState extends State<VideoItem> {
           widget.videoPlayerController.value.position.inSeconds,
           widget.videoPlayerController.value.position.inMicroseconds);
     });
+  }
+
+  @override
+  void dispose() {
+    _chewieController.dispose();
+    super.dispose();
   }
 
   @override
@@ -49,11 +53,5 @@ class _VideoItemState extends State<VideoItem> {
         controller: _chewieController,
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _chewieController.dispose();
-    super.dispose();
   }
 }

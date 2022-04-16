@@ -17,14 +17,3 @@ class VideoPath with ChangeNotifier {
     _isChanged = false;
   }
 }
-//
-// class AudioPath with ChangeNotifier {
-//   String? _audioPath;
-//
-//   String? get audioPath => _audioPath;
-//
-//   void setAudioPath(String? val){
-//     _audioPath = val;
-//     notifyListeners();
-//   }
-// }

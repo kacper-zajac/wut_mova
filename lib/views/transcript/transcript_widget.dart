@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:mova/constants.dart';
-import 'package:mova/provider/file_path.dart';
 import 'package:mova/provider/transcribed_words.dart';
+import 'package:mova/views/transcript/transcribed_word_widget.dart';
+import 'package:mova/views/widgets/utils.dart';
 import 'package:provider/provider.dart';
-import 'package:mova/views/widgets/transcribed_word_widget.dart';
 
 import '../../model/transcribed_word.dart';
 import '../../model/video_converter.dart';
@@ -24,8 +24,7 @@ class _TranscriptWidgetState extends State<TranscriptWidget> {
     List<TranscribedWordWidget> transcribedWordWidgets = [];
     setState(() {
       for (TranscribedWord tw in _transcribedWords) {
-        transcribedWordWidgets
-            .add(TranscribedWordWidget(transcribedWidget: tw));
+        transcribedWordWidgets.add(TranscribedWordWidget(transcribedWidget: tw));
       }
     });
     return transcribedWordWidgets;
@@ -33,10 +32,18 @@ class _TranscriptWidgetState extends State<TranscriptWidget> {
 
   @override
   Widget build(BuildContext context) {
-    _transcribedWords =
-        Provider.of<TranscribedWords>(context, listen: true).transcribedWords;
+    _transcribedWords = Provider.of<TranscribedWords>(context, listen: true).transcribedWords;
     if (_transcribedWords.isNotEmpty) {
-      return Expanded(
+      return transcriptSection();
+    } else {
+      return Utils.centeredText(
+        text: 'Waiting for an input',
+        style: kBoxBottomTextStyle,
+      );
+    }
+  }
+
+  Expanded transcriptSection() => Expanded(
         child: SizedBox(
           height: 150.0,
           child: Column(
@@ -53,13 +60,13 @@ class _TranscriptWidgetState extends State<TranscriptWidget> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   TextButton(
-                    onPressed: () => VideoConverter().combineVideo(
-                        widget.projectDirectory, _transcribedWords, context),
+                    onPressed: () => VideoConverter()
+                        .combineVideo(widget.projectDirectory, _transcribedWords, context),
                     child: const Text('refresh'),
                   ),
                   TextButton(
-                    onPressed: () => VideoConverter().exportVideo(
-                        widget.projectDirectory, _transcribedWords, context),
+                    onPressed: () => VideoConverter()
+                        .exportVideo(widget.projectDirectory, _transcribedWords, context),
                     child: const Text('export'),
                   ),
                 ],
@@ -68,13 +75,4 @@ class _TranscriptWidgetState extends State<TranscriptWidget> {
           ),
         ),
       );
-    } else {
-      return const Center(
-        child: Text(
-          'Waiting for an input',
-          style: kBoxBottomTextStyle,
-        ),
-      );
-    }
-  }
 }

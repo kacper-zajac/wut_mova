@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:mova/model/transcribed_word.dart';
 
@@ -36,6 +38,17 @@ class TranscribedWords with ChangeNotifier {
   }
 
   void runNotifyListeners() {
+    notifyListeners();
+  }
+
+  String getJSON() => jsonEncode(_transcribedWords);
+
+  void readWordsFromFile(jsonString) {
+    clearList();
+    List<dynamic> wordsMap = jsonDecode(jsonString);
+    for(dynamic word in wordsMap) {
+      _transcribedWords.add(TranscribedWord.fromJson(word));
+    }
     notifyListeners();
   }
 }
