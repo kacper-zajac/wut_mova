@@ -1,8 +1,11 @@
+import 'dart:developer';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:mova/firebase_options.dart';
 import 'package:mova/views/auth/authentication.dart';
+import 'package:mova/views/menu/menu_screen.dart';
 
 class ApplicationState extends ChangeNotifier {
   ApplicationState() {
@@ -20,7 +23,6 @@ class ApplicationState extends ChangeNotifier {
       } else {
         _loginState = ApplicationLoginState.loggedOut;
       }
-      notifyListeners();
     });
   }
 
@@ -37,10 +39,7 @@ class ApplicationState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> verifyEmail(
-    String email,
-    void Function(FirebaseAuthException e) errorCallback,
-  ) async {
+  Future<String> verifyEmail(String email) async {
     try {
       var methods = await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
       if (methods.contains('password')) {
@@ -50,14 +49,16 @@ class ApplicationState extends ChangeNotifier {
       }
       _email = email;
       notifyListeners();
+      return 'SUCCESS';
     } on FirebaseAuthException catch (e) {
-      errorCallback(e);
+      return e.message ?? 'Identified error. Please try again!';
     }
   }
 
-  Future<void> signInWithEmailAndPassword(
+  Future<bool> signInWithEmailAndPassword(
     String email,
     String password,
+    BuildContext context,
     void Function(FirebaseAuthException e) errorCallback,
   ) async {
     try {
@@ -65,9 +66,18 @@ class ApplicationState extends ChangeNotifier {
         email: email,
         password: password,
       );
+
+      Future.delayed(Duration(seconds: 1), () {
+        log(context.toString());
+        log(MenuScreen.id);
+        print(context);
+        Navigator.pushNamed(context, MenuScreen.id);
+      });
     } on FirebaseAuthException catch (e) {
       errorCallback(e);
+      return false;
     }
+    return true;
   }
 
   void cancelRegistration() {
@@ -75,15 +85,21 @@ class ApplicationState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> registerAccount(String email, String displayName, String password,
-      void Function(FirebaseAuthException e) errorCallback) async {
+  Future<bool> registerAccount(String email, String displayName, String password,
+      BuildContext context, void Function(FirebaseAuthException e) errorCallback) async {
     try {
       var credential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
       await credential.user!.updateDisplayName(displayName);
+      Future.delayed(
+        Duration(seconds: 1),
+        () => Navigator.pushReplacementNamed(context, MenuScreen.id),
+      );
     } on FirebaseAuthException catch (e) {
       errorCallback(e);
+      return false;
     }
+    return true;
   }
 
   void signOut() {

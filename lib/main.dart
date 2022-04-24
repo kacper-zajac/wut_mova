@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:mova/constants.dart';
 import 'package:mova/provider/application_state.dart';
 import 'package:mova/views/auth/welcome_screen.dart';
@@ -29,8 +30,11 @@ class MyApp extends StatelessWidget {
         MenuScreen.id: (context) => MenuScreen(),
       },
       theme: ThemeData(
+        textTheme: GoogleFonts.robotoTextTheme(
+          Theme.of(context).textTheme
+        ),
         scaffoldBackgroundColor: kBackgroundColor,
-        primarySwatch: Colors.deepPurple,
+        primarySwatch: Colors.grey,
       ),
     );
   }

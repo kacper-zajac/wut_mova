@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mova/constants.dart';
 import 'package:mova/views/auth/welcome_screen.dart';
+import 'package:mova/views/menu/logout_controller.dart';
 import 'package:mova/views/menu/recent_projects.dart';
 import 'package:mova/views/menu/work_screen.dart';
+import 'package:mova/views/widgets/animated_logo.dart';
 import 'package:mova/views/widgets/reusable_tile.dart';
 import 'package:mova/views/widgets/utils.dart';
 import 'package:path_provider/path_provider.dart';
@@ -77,28 +79,23 @@ class MenuScreen extends StatelessWidget {
       },
       child: Scaffold(
         appBar: AppBar(
+          // title: const Hero(
+          //   tag: 'logo',
+          //   child: AnimatedLogo().co,
+          // ),
           backgroundColor: kBackgroundColor,
           leading: DatabaseController(
             refreshProjects: refreshProjects,
           ),
           actions: [
-            IconButton(
-              onPressed: () => Navigator.pushNamedAndRemoveUntil(
-                context,
-                WelcomeScreen.id,
-                (Route<dynamic> route) => false,
-              ),
-              focusColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-              splashColor: kBoxColorTop,
-              icon: const Icon(Icons.logout_rounded),
-            ),
+            LogoutController(),
           ],
         ),
         body: Padding(
           padding: const EdgeInsets.all(10.0),
           child: SafeArea(
-            child: Column(
+            child: Flex(
+              direction: Axis.vertical,
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -113,9 +110,12 @@ class MenuScreen extends StatelessWidget {
                             style: kBoxTextStyle,
                           ),
                           SizedBox(height: 40.0),
-                          Container(
-                              height: 150.0,
-                              child: Image.asset('lib/assets/pictures/logo_customwhite.png')),
+                          Hero(
+                            tag: 'logo',
+                            child: AnimatedLogo(
+                              isFullLogo: true,
+                            ),
+                          ),
                           SizedBox(height: 40.0),
                           ReusableTile(
                             color: kBoxColorBottom,

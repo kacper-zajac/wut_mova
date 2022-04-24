@@ -21,9 +21,15 @@ class _DatabaseControllerState extends State<DatabaseController> {
   Icon getIcon(DatabaseType type) {
     switch (type) {
       case DatabaseType.cloud:
-        return const Icon(Icons.cloud_rounded);
+        return const Icon(
+          Icons.cloud_rounded,
+          color: Colors.white,
+        );
       case DatabaseType.local:
-        return const Icon(Icons.cloud_off_rounded);
+        return const Icon(
+          Icons.cloud_off_rounded,
+          color: Colors.white,
+        );
     }
   }
 
@@ -42,11 +48,11 @@ class _DatabaseControllerState extends State<DatabaseController> {
       });
       widget.refreshProjects(type);
     } else {
-      Utils.showDialogSelfExpire(
-        title: 'Login to use cloud storage!',
+      Utils.simpleAlert(
+        bodyText: 'Login first to use the cloud storage.',
+        title: 'You cannot do that!',
         context: context,
       );
-      // TODO error on not logged in database switch attempt
     }
   }
 

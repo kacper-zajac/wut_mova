@@ -62,7 +62,7 @@ class RecentProjectsState extends State<RecentProjects> {
   Future<void> refreshList(DatabaseType type) async {
     currentDatabaseType = type;
     _projects = await _getProjects(type);
-    setState(() {});
+    if(mounted) setState(() {});
   }
 
   @override
@@ -99,6 +99,8 @@ class RecentProjectsState extends State<RecentProjects> {
     } else {
       return Expanded(
         child: RefreshIndicator(
+          color: Colors.white,
+          backgroundColor: Colors.lightBlueAccent,
           child: ListView(
             children: _projects!,
             physics: const BouncingScrollPhysics(

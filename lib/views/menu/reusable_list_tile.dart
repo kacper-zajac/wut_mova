@@ -64,7 +64,6 @@ class _ReusableListTileState extends State<ReusableListTile> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     init();
   }
