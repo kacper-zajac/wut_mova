@@ -5,7 +5,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:mova/constants.dart';
-import 'package:mova/views/auth/welcome_screen.dart';
 import 'package:mova/views/menu/logout_controller.dart';
 import 'package:mova/views/menu/recent_projects.dart';
 import 'package:mova/views/menu/work_screen.dart';
@@ -61,19 +60,22 @@ class MenuScreen extends StatelessWidget {
     File(projDirectory + '/config').writeAsString(jsonEncode(jsonString));
 
     Navigator.pushNamed(context, WorkScreen.id, arguments: projDirectory);
+    _key.currentState!.refreshListCurrentType();
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        // TODO investigate why it doesnt really work - once only
-        bool? exit = await Utils.showCustomDialog(
+        bool? exit = await showDialog(
           context: context,
-          title: 'Leave confirmation',
-          bodyText: 'Are you sure you want to close the app?',
-          optionTrue: 'Leave',
-          optionFalse: 'Take me back',
+          builder: (BuildContext innerContext) => Utils.showCustomDialog(
+            context: context,
+            title: 'Leave confirmation',
+            bodyText: 'Are you sure you want to close the app?',
+            optionTrue: 'Leave',
+            optionFalse: 'Take me back',
+          ),
         );
         return exit ?? false;
       },

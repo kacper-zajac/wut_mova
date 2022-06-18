@@ -30,14 +30,21 @@ class RecentProjectsState extends State<RecentProjects> {
         return Future.value(
           List<ReusableListTile>.generate(
             0,
-            (index) => ReusableListTile(configFile: File(''), projPath: 'projPath'),
+            (index) => ReusableListTile(
+              projName: '',
+              createDate: '',
+              projPath: 'projPath',
+              refreshCallback: refreshListCurrentType,
+            ),
           ),
         );
     }
   }
 
   Future<List<ReusableListTile>> _getProjectsLocal() async {
-    List<ReusableListTile> _projects = [];
+    if (_projects != null && _projects!.isNotEmpty) _projects!.removeRange(0, _projects!.length);
+
+    List<ReusableListTile> _projectsNewList = [];
     List<String> _projectTitles = [];
     _appDir ??= await Utils.getAppDirectory();
     final List<FileSystemEntity> entities = await _appDir!.list().toList();
@@ -47,29 +54,35 @@ class RecentProjectsState extends State<RecentProjects> {
       if (configFile.existsSync()) {
         Map<String, dynamic> config = jsonDecode(await configFile.readAsString());
         _projectTitles.add(config['projName']!);
-        _projects.add(
+        _projectsNewList.add(
           ReusableListTile(
-            configFile: config,
+            projName: config['projName']!,
+            createDate: config['createDate']!,
             projPath: folder.path,
+            refreshCallback: refreshListCurrentType,
           ),
         );
       }
     }
     widget.callback(_projectTitles);
-    return _projects;
+    return _projectsNewList;
+  }
+
+  Future<void> refreshListCurrentType() async {
+    _projects = await _getProjects(currentDatabaseType);
+    setState(() {});
   }
 
   Future<void> refreshList(DatabaseType type) async {
     currentDatabaseType = type;
-    _projects = await _getProjects(type);
-    if(mounted) setState(() {});
+    await refreshListCurrentType();
   }
 
   @override
   void initState() {
     super.initState();
     currentDatabaseType = DatabaseType.local;
-    refreshList(currentDatabaseType);
+    refreshListCurrentType();
   }
 
   @override

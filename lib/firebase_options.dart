@@ -40,23 +40,20 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDR3PyXAEwvWTk2A0bAn8JPgnVKh_YfcoE',
-    appId: '1:572074800008:android:3ef1a46b78ede8f324003d',
-    messagingSenderId: '572074800008',
-    projectId: 'wut-mova-344119',
-    databaseURL: 'https://wut-mova-344119-default-rtdb.europe-west1.firebasedatabase.app',
-    storageBucket: 'wut-mova-344119.appspot.com',
+    apiKey: 'AIzaSyCew7Zzq3Q6pt3aOO6cF2qTun0ghbFcvZc',
+    appId: '1:383118763711:android:d7881fe2e476441690c80a',
+    messagingSenderId: '383118763711',
+    projectId: 'wut-zajka-mova',
+    storageBucket: 'wut-zajka-mova.appspot.com',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBZqL0pJFxe9_VoJq1M_hEEa0-JwK-YLpw',
-    appId: '1:572074800008:ios:d891074fa5469d7c24003d',
-    messagingSenderId: '572074800008',
-    projectId: 'wut-mova-344119',
-    databaseURL: 'https://wut-mova-344119-default-rtdb.europe-west1.firebasedatabase.app',
-    storageBucket: 'wut-mova-344119.appspot.com',
-    androidClientId: '572074800008-73f03uj8p09s3dhmu0qmsdd3jtt8iul9.apps.googleusercontent.com',
-    iosClientId: '572074800008-kpl0kc44u7vqb7o8iq5rqvs98vgjugrc.apps.googleusercontent.com',
-    iosBundleId: 'pl.kacperzajac.mova',
+    apiKey: 'AIzaSyCns55XF7dwTnYDsOCQDmCZlbUcQ89hkRA',
+    appId: '1:383118763711:ios:4e40bc926efb214d90c80a',
+    messagingSenderId: '383118763711',
+    projectId: 'wut-zajka-mova',
+    storageBucket: 'wut-zajka-mova.appspot.com',
+    iosClientId: '383118763711-ebk4csasapf2jkmip4082jmua3oh3r9s.apps.googleusercontent.com',
+    iosBundleId: 'pl.zajka.mova',
   );
 }

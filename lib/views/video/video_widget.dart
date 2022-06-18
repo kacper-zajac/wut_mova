@@ -1,20 +1,23 @@
 import 'dart:io';
 
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:mova/constants.dart';
 import 'package:mova/model/video_converter.dart';
 import 'package:mova/provider/file_path.dart';
 import 'package:mova/provider/transcribed_words.dart';
 import 'package:mova/views/video/video_item.dart';
-import 'package:mova/views/widgets/utils.dart';
+import 'package:mova/views/widgets/reusable_tile.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
 class VideoWidget extends StatefulWidget {
   final String _projectDirectory;
+  final Function callback;
 
-  VideoWidget(this._projectDirectory);
+  VideoWidget(this._projectDirectory, this.callback);
 
   @override
   State<VideoWidget> createState() => _VideoWidgetState();
@@ -25,43 +28,44 @@ class _VideoWidgetState extends State<VideoWidget> {
   VideoPlayerController? _videoPlayerController;
   bool _loading = false;
 
-  Future<void> getVideo() async {
-    setState(() {
-      _loading = true;
-    });
+  setLoadingState(bool newState) {
+    if (newState != _loading) {
+      setState(() {
+        _loading = newState;
+        widget.callback(newState);
+      });
+    }
+  }
 
+  Future<void> getVideo() async {
     FilePickerResult? result =
         await FilePicker.platform.pickFiles(type: FileType.video, allowMultiple: false);
 
     if (result != null && result.files.single.path != null) {
+      setLoadingState(true);
+
       VideoConverter converter = VideoConverter();
       converter.createVidCopy(context, result.files.single.path!, widget._projectDirectory);
+    } else {
+      setLoadingState(false);
     }
   }
 
   void initializePlayer(String filePath) {
     _currentVideoPath = filePath;
-    _videoPlayerController = VideoPlayerController.file(File(filePath))
-      ..initialize().then((value) => setState(() {
-            _loading = false;
-          }));
+    _videoPlayerController = VideoPlayerController.file(File(filePath))..initialize();
   }
 
   Future<void> controllerChange(String filePath, bool isChanged) async {
     if (_videoPlayerController == null) {
       initializePlayer(filePath);
     } else if (isChanged) {
-      final oldPlayer = _videoPlayerController;
-      WidgetsBinding.instance?.addPostFrameCallback((_) async {
-        await oldPlayer!.dispose();
-
-        initializePlayer(filePath);
-      });
+      await disposeVideoController();
+      initializePlayer(filePath);
 
       setState(() {
         _loading = false;
-        _videoPlayerController = null;
-        _currentVideoPath = filePath;
+        widget.callback(false);
       });
     }
   }
@@ -69,16 +73,17 @@ class _VideoWidgetState extends State<VideoWidget> {
   Future<void> disposeVideoController() async {
     if (_videoPlayerController == null) return;
     final vpcToDispose = _videoPlayerController;
-    setState(() {
-      _loading = false;
-      _videoPlayerController = null;
-    });
+
+    _videoPlayerController = null;
+    setLoadingState(false);
+
     vpcToDispose!.dispose();
     _currentVideoPath = null;
   }
 
   @override
   void dispose() {
+    // disposeVideoController
     super.dispose();
   }
 
@@ -100,52 +105,120 @@ class _VideoWidgetState extends State<VideoWidget> {
   @override
   Widget build(BuildContext context) {
     String? _filePath = Provider.of<VideoPath>(context, listen: true).videoPath;
+    bool isTranscriptInitialized =
+        Provider.of<TranscribedWords>(context, listen: true).isInitialized;
     if (_filePath != null) {
       controllerChange(_filePath, Provider.of<VideoPath>(context, listen: false).isChanged);
-      Provider.of<VideoPath>(context, listen: false).handleChange();
+      Future.delayed(
+        Duration(milliseconds: 250),
+        () => Provider.of<VideoPath>(context, listen: false).handleChange(),
+      );
     }
+    if (isTranscriptInitialized) {
+      setLoadingState(false);
+    }
+    return _loading
+        ? loadingView(context)
+        : _videoPlayerController != null
+            ? VideoItem(videoPlayerController: _videoPlayerController!)
+            : isTranscriptInitialized
+                ? Container(
+                    height: 350.0,
+                    width: 350.0,
+                    child: ReusableTile(
+                      isPadding: false,
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  )
+                : chooseVideoButton();
+  }
+
+  Expanded chooseVideoButton() {
+    return Expanded(
+      child: Center(
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            onSurface: kBoxColorTop,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            primary: kBoxColorTop,
+            elevation: 3,
+            padding: const EdgeInsets.symmetric(horizontal: 35.0, vertical: 20.0),
+          ),
+          onPressed: () async {
+            await getVideo();
+          },
+          child: Text(
+            'Choose a video',
+            style: kBoxTextStyle,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Expanded loadingView(BuildContext context) {
     return Expanded(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Flexible(
-            child: Container(
-              child: _videoPlayerController != null
-                  ? VideoItem(videoPlayerController: _videoPlayerController!)
-                  : (_loading == false
-                      ? TextButton(
-                          onPressed: () async {
-                            await getVideo();
-                          },
-                          child: const Text('Choose a video'),
-                        )
-                      : const Center(
-                          child: CircularProgressIndicator(),
-                        )),
-            ),
+          const CircularProgressIndicator(),
+          SizedBox(
+            height: 50.0,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Flexible(
-                child: TextButton(
-                  onPressed: () async {
-                    if (_currentVideoPath != null) {
-                      bool? alertOutcome = await Utils.showAlertDialog(context,
-                          'Are you sure you\'d like to reset the project?\nThat will delete all the saved data!');
-                      if (alertOutcome ?? false) {
-                        cleanProjectDirectory();
-                        disposeVideoController();
-                        Provider.of<VideoPath>(context, listen: false).setVideoPath(null);
-                        Provider.of<TranscribedWords>(context, listen: false).clearList();
-                        Provider.of<TranscribedWords>(context, listen: false).runNotifyListeners();
-                      }
-                    }
-                  },
-                  child: const Text('reset the project'),
-                ),
-              ),
-            ],
+          DefaultTextStyle(
+            style: kBoxTextStyle.copyWith(fontSize: 12.0, color: Colors.white70),
+            child: AnimatedTextKit(
+              repeatForever: true,
+              animatedTexts: [
+                TypewriterAnimatedText('your video is loading',
+                    speed: Duration(
+                      milliseconds: 220,
+                    ),
+                    curve: Curves.bounceIn,
+                    cursor: ''),
+                TypewriterAnimatedText('the transcript is being prepared',
+                    speed: Duration(
+                      milliseconds: 170,
+                    ),
+                    curve: Curves.slowMiddle,
+                    cursor: ''),
+                TypewriterAnimatedText('the audio is being adjusted',
+                    speed: Duration(
+                      milliseconds: 170,
+                    ),
+                    curve: Curves.ease,
+                    cursor: ''),
+                TypewriterAnimatedText('colors are being tweaked',
+                    speed: Duration(
+                      milliseconds: 220,
+                    ),
+                    curve: Curves.bounceIn,
+                    cursor: ''),
+                TypewriterAnimatedText('the translation is being refined',
+                    speed: Duration(
+                      milliseconds: 170,
+                    ),
+                    curve: Curves.ease,
+                    cursor: ''),
+                TypewriterAnimatedText('mova is thinking',
+                    speed: Duration(
+                      milliseconds: 200,
+                    ),
+                    cursor: ''),
+                TypewriterAnimatedText('mova is thinking',
+                    speed: Duration(
+                      milliseconds: 210,
+                    ),
+                    cursor: ''),
+                TypewriterAnimatedText('mova is thinking',
+                    speed: Duration(
+                      milliseconds: 220,
+                    ),
+                    cursor: ''),
+              ],
+            ),
           ),
         ],
       ),

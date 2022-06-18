@@ -1,13 +1,14 @@
-import 'package:flutter/cupertino.dart';
-import 'package:google_speech/generated/google/cloud/speech/v1/cloud_speech.pb.dart'
-    as gcs;
-import 'package:google_speech/google_speech.dart';
 import 'dart:io';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:google_speech/generated/google/cloud/speech/v1/cloud_speech.pb.dart' as gcs;
+import 'package:google_speech/google_speech.dart';
 import 'package:mova/model/transcribed_word.dart';
 import 'package:mova/provider/transcribed_words.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:mova/views/widgets/utils.dart';
 import 'package:provider/provider.dart';
+
 import '../constants.dart';
 
 class SpeechToText1 {
@@ -23,7 +24,7 @@ class SpeechToText1 {
   }
 
   init() async {
-    String json = await loadAsset('lib/wut-mova-344119-ba7ed2dfbbb3.json');
+    String json = await loadAsset('lib/wut-zajka-mova-486794de37ce.json');
     _serviceAccount = ServiceAccount.fromString(json);
     _speechToText = SpeechToText.viaServiceAccount(_serviceAccount);
     _config = RecognitionConfig(
@@ -37,24 +38,23 @@ class SpeechToText1 {
     isInitialized = true;
   }
 
-  Future<void> getTranscript(BuildContext context, String audioPath, String projectDirectory) async {
+  Future<void> getTranscript(
+      BuildContext context, String audioPath, String projectDirectory) async {
     if (!isInitialized) await init();
-    Directory(projectDirectory + kWorkDirectoryName)
-        .createSync();
+    Directory(projectDirectory + kWorkDirectoryName).createSync();
 
     final audio = File(audioPath).readAsBytesSync().toList();
     Provider.of<TranscribedWords>(context, listen: false).clearList();
     await _speechToText.recognize(_config, audio).then(
-      (value) {
+      (value) async {
         int iter = 0;
         for (gcs.SpeechRecognitionResult results in value.results) {
           for (gcs.WordInfo wi in results.alternatives.first.words) {
             int startTimeSec = wi.startTime.seconds.toInt() * 1000000;
-            int startTimeMicroSec =
-                wi.startTime.nanos ~/ 1000;
+            int startTimeMicroSec = wi.startTime.nanos ~/ 1000;
             int endTimeSec = wi.endTime.seconds.toInt() * 1000000;
             int endTimeMicroSec = wi.endTime.nanos ~/ 1000;
-                Provider.of<TranscribedWords>(context, listen: false).addWord(
+            Provider.of<TranscribedWords>(context, listen: false).addWord(
               TranscribedWord(
                 text: wi.word,
                 startTime: startTimeSec + startTimeMicroSec,
@@ -65,8 +65,10 @@ class SpeechToText1 {
             );
           }
         }
-        Provider.of<TranscribedWords>(context, listen: false).runNotifyListeners();
-        },
+        Provider.of<TranscribedWords>(context, listen: false).markAsInitialized();
+        String? jsonToSave = await Utils.getSaveFileJsonString(context, projectDirectory);
+        if (jsonToSave != null) await Utils.saveProgress(context, projectDirectory, jsonToSave);
+      },
     );
   }
 }

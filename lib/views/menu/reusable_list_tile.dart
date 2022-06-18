@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
@@ -10,29 +9,25 @@ import '../../constants.dart';
 import 'work_screen.dart';
 
 class ReusableListTile extends StatefulWidget {
-  const ReusableListTile({Key? key, required configFile, required this.projPath}) : super(key: key);
+  const ReusableListTile({
+    Key? key,
+    required this.projName,
+    required this.createDate,
+    required this.projPath,
+    required this.refreshCallback,
+  }) : super(key: key);
 
+  final Function refreshCallback;
   final String projPath;
+  final String projName;
+  final String createDate;
 
   @override
   State<ReusableListTile> createState() => _ReusableListTileState();
 }
 
 class _ReusableListTileState extends State<ReusableListTile> {
-  init() async {
-    final data = await json.decode(await File(widget.projPath + '/config').readAsString());
-
-    setState(() {
-      title = data['projName'];
-      date = data['createDate'];
-      _initialized = true;
-    });
-  }
-
   bool _error = false;
-  bool _initialized = false;
-  late String title;
-  late String date;
 
   void openProject(BuildContext context) {
     if (Directory(widget.projPath).existsSync()) {
@@ -44,9 +39,10 @@ class _ReusableListTileState extends State<ReusableListTile> {
     }
   }
 
-  void deleteProject(BuildContext context) {
+  void deleteProject() async {
     if (Directory(widget.projPath).existsSync()) {
-      Navigator.pushNamed(context, WorkScreen.id, arguments: widget.projPath);
+      Directory(widget.projPath).deleteSync(recursive: true);
+      await widget.refreshCallback();
     } else {
       setState(() {
         _error = true;
@@ -63,19 +59,11 @@ class _ReusableListTileState extends State<ReusableListTile> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    init();
-  }
-
-  @override
   Widget build(BuildContext context) {
     if (_error) {
       return errorBehaviour();
-    } else if (_initialized) {
-      return expectedBehaviour(context);
     } else {
-      return const Center(child: CircularProgressIndicator());
+      return expectedBehaviour(context);
     }
   }
 
@@ -127,15 +115,11 @@ class _ReusableListTileState extends State<ReusableListTile> {
           if (direction == DismissDirection.endToStart) {
             if (_error) {
               return;
-            } else if (Directory(widget.projPath).existsSync()) {
-              Directory(widget.projPath).deleteSync(recursive: true);
             } else {
-              setState(() {
-                _error = true;
-              });
+              deleteProject();
             }
           } else {
-            // upload
+            // TODO: upload to cloud functionality
             return;
           }
         },
@@ -164,11 +148,11 @@ class _ReusableListTileState extends State<ReusableListTile> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  title,
+                  widget.projName,
                   style: kBoxBottomTextStyle,
                 ),
                 Text(
-                  date,
+                  widget.createDate,
                   style: kBoxBottomTextStyle,
                 ),
               ],

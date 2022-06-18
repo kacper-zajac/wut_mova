@@ -56,12 +56,22 @@ class IconAndDetail extends StatelessWidget {
 }
 
 class StyledButton extends StatelessWidget {
-  StyledButton({Key? key, required this.child, required this.onPressed, required this.controller})
-      : super(key: key);
+  StyledButton({
+    Key? key,
+    required this.child,
+    required this.onPressed,
+    required this.controller,
+    this.width = 150.0,
+    this.durationInSeconds = 5,
+    this.resetAfterDuration = true,
+  }) : super(key: key);
 
   final Widget child;
   final void Function() onPressed;
   final RoundedLoadingButtonController controller;
+  final double width;
+  final int durationInSeconds;
+  final bool resetAfterDuration;
 
   @override
   Widget build(BuildContext context) => RoundedLoadingButton(
@@ -70,10 +80,10 @@ class StyledButton extends StatelessWidget {
         disabledColor: Colors.white,
         height: 40.0,
         elevation: 3.0,
-        resetAfterDuration: true,
-        resetDuration: Duration(seconds: 5),
-        width: 150.0,
+        width: width,
         borderRadius: 10.0,
+        resetAfterDuration: resetAfterDuration,
+        resetDuration: Duration(seconds: durationInSeconds),
         controller: controller,
         onPressed: onPressed,
         child: child,

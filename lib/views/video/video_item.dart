@@ -1,6 +1,7 @@
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
 import 'package:mova/provider/video_timer.dart';
+import 'package:mova/views/widgets/reusable_tile.dart';
 import 'package:mova/views/widgets/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
@@ -21,8 +22,9 @@ class _VideoItemState extends State<VideoItem> {
   void initState() {
     super.initState();
     _chewieController = ChewieController(
+      aspectRatio: 1/1,
       videoPlayerController: widget.videoPlayerController,
-      autoInitialize: true,
+      autoInitialize: false,
       errorBuilder: (context, errorMessage) {
         return Utils.centeredText(
           text: 'Something went wrong. Please try again! ($errorMessage)',
@@ -39,17 +41,21 @@ class _VideoItemState extends State<VideoItem> {
 
   @override
   void dispose() {
+    widget.videoPlayerController.dispose();
+    _chewieController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(15.0),
-      color: Colors.white,
-      margin: EdgeInsets.all(5.0),
-      child: Chewie(
-        controller: _chewieController,
+      height: 350.0,
+      width: 350.0,
+      child: ReusableTile(
+        isPadding: false,
+        child: Chewie(
+          controller: _chewieController,
+        ),
       ),
     );
   }

@@ -18,17 +18,20 @@ class Utils {
     String saveFilePath = projectPath + kSaveFileName;
     if (File(saveFilePath).existsSync()) {
       Map<String, dynamic> jsonString = await json.decode(await File(saveFilePath).readAsString());
+      Provider.of<VideoPath>(context, listen: false).setVideoPath(jsonString["videoPath"]);
+      Provider.of<VideoPath>(context, listen: false).setOriginalVideoPath(jsonString["originalVideoPath"]);
 
       Provider.of<TranscribedWords>(context, listen: false)
           .readWordsFromFile(jsonString['transcribedWords']);
-      Provider.of<VideoPath>(context, listen: false).setVideoPath(jsonString["videoPath"]);
+
+      Provider.of<TranscribedWords>(context, listen: false).markAsInitialized();
     }
   }
 
   static bool handleUninitialized(BuildContext context, String projectPath) {
     if (Provider.of<VideoPath>(context, listen: false).videoPath == null) {
       if (Directory(projectPath).existsSync() && !File(projectPath + kSaveFileName).existsSync()) {
-        Directory(projectPath).deleteSync(recursive: true);
+        // Directory(projectPath).deleteSync(recursive: true);
         return true;
       }
     }
@@ -38,9 +41,11 @@ class Utils {
   static Future<String?> getSaveFileJsonString(BuildContext context, String projectPath) async {
     String transcribedWordJson = Provider.of<TranscribedWords>(context, listen: false).getJSON();
     String? videoPath = Provider.of<VideoPath>(context, listen: false).videoPath;
+    String? originalVideoPath = Provider.of<VideoPath>(context, listen: false).originalVideoPath;
 
     Map<String, dynamic> jsonMap = {
       'videoPath': videoPath ?? '',
+      'originalVideoPath': originalVideoPath ?? '',
       'transcribedWords': transcribedWordJson,
     };
 
@@ -59,7 +64,7 @@ class Utils {
       String saveFilePath = projectPath + kSaveFileName;
       if (File(saveFilePath).existsSync()) File(saveFilePath).deleteSync();
 
-      File(saveFilePath).writeAsString(jsonToWrite);
+      await File(saveFilePath).writeAsString(jsonToWrite);
     } catch (e) {
       return await showErrorDialog(context, e.toString()) ?? false;
     }
@@ -89,22 +94,26 @@ class Utils {
 
   // show dialogs
 
-  static Future<bool?> showAlertDialog(BuildContext context, String text) async =>
-      await showCustomDialog(
+  static Future<bool?> showAlertDialog(BuildContext context, String text) async => await showDialog(
         context: context,
-        bodyText: text,
-        title: 'Alert!',
-        optionTrue: 'Proceed',
-        optionFalse: 'Cancel',
+        builder: (BuildContext innerContext) => showCustomDialog(
+          context: context,
+          bodyText: text,
+          title: 'Alert!',
+          optionTrue: 'Proceed',
+          optionFalse: 'Cancel',
+        ),
       );
 
-  static Future<bool?> showErrorDialog(BuildContext context, String text) async =>
-      await showCustomDialog(
+  static Future<bool?> showErrorDialog(BuildContext context, String text) async => await showDialog(
         context: context,
-        bodyText: text,
-        title: 'Error!',
-        optionTrue: 'Ignore',
-        optionFalse: 'Take me back',
+        builder: (BuildContext innerContext) => showCustomDialog(
+          context: context,
+          bodyText: text,
+          title: 'Error!',
+          optionTrue: 'Ignore',
+          optionFalse: 'Take me back',
+        ),
       );
 
   static Future<bool?> showErrorDialogWitException(
@@ -112,84 +121,92 @@ class Utils {
     String text,
     Exception errorMessage,
   ) async =>
-      await showCustomDialog(
+      await showDialog(
         context: context,
-        bodyText: (errorMessage as dynamic).message ?? '',
-        title: text,
-        optionFalse: 'Ok',
+        builder: (BuildContext innerContext) => showCustomDialog(
+          context: context,
+          bodyText: (errorMessage as dynamic).message ?? '',
+          title: text,
+          optionFalse: 'Ok',
+        ),
       );
 
-  static Future<bool?> showCustomDialog({
+  static List<Widget> _getActions(
+      List<Widget>? customActions, String? optionTrue, String? optionFalse, context) {
+    List<Widget> actions = [];
+    if (customActions != null) {
+      actions.addAll(customActions);
+    }
+    if (optionTrue != null) {
+      actions
+          .add(TextButton(onPressed: () => Navigator.pop(context, true), child: Text(optionTrue)));
+    }
+    if (optionFalse != null) {
+      actions.add(
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(optionFalse)));
+    }
+    return actions;
+  }
+
+  static AlertDialog showCustomDialog({
     required BuildContext context,
     required String bodyText,
     required String title,
     String? optionTrue,
     String? optionFalse,
     List<Widget>? customActions,
-  }) async {
-    List<Widget> actions = [];
-    if (customActions != null) {
-      actions.addAll(customActions);
-    }
-    if (optionTrue != null) {
-      actions.add(
-          TextButton(onPressed: () => Navigator.of(context).pop(true), child: Text(optionTrue)));
-    }
-    if (optionFalse != null) {
-      actions.add(
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(optionFalse)));
-    }
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          elevation: 10.0,
-          backgroundColor: kAlertColor.withOpacity(.95),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(
-              Radius.circular(15.0),
+  }) {
+    return AlertDialog(
+      elevation: 10.0,
+      backgroundColor: kAlertColor.withOpacity(.95),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(
+          Radius.circular(15.0),
+        ),
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: Colors.white,
+        ),
+      ),
+      content: SingleChildScrollView(
+        child: ListBody(
+          children: [
+            Text(
+              bodyText,
+              style: TextStyle(
+                color: Colors.white,
+              ),
             ),
-          ),
-          title: Text(
-            title,
-            style: TextStyle(
-              color: Colors.white,
-            ),
-          ),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: [
-                Text(
-                  bodyText,
-                  style: TextStyle(
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: actions,
-        );
-      },
+          ],
+        ),
+      ),
+      actions: _getActions(customActions, optionTrue, optionFalse, context),
     );
   }
 
   static Future<bool?> simpleAlert(
           {required BuildContext context, required String title, required bodyText}) async =>
-      await showCustomDialog(
+      await await showDialog(
         context: context,
-        title: title,
-        bodyText: bodyText,
-        optionTrue: 'Ok',
+        builder: (BuildContext innerContext) => showCustomDialog(
+          context: context,
+          title: title,
+          bodyText: bodyText,
+          optionTrue: 'Ok',
+        ),
       );
 
-  static Future<bool?> showDialogDeleteConfirmation(BuildContext context) async =>
-      await showCustomDialog(
+  static Future<bool?> showDialogDeleteConfirmation(BuildContext context) async => await showDialog(
         context: context,
-        bodyText: "Are you sure you want to delete this project?",
-        title: "Deletion confirmation",
-        optionTrue: 'Delete',
-        optionFalse: 'Cancel',
+        builder: (BuildContext innerContext) => showCustomDialog(
+          context: context,
+          bodyText: "Are you sure you want to delete this project?",
+          title: "Deletion confirmation",
+          optionTrue: 'Delete',
+          optionFalse: 'Cancel',
+        ),
       );
 
   static Future<String?> showDialogGetTitle(context, controller, projectTitles) =>
@@ -263,24 +280,24 @@ class Utils {
   static Future<bool?> showDialogWorkScreen(outerContext, projectPath) async {
     String? jsonToSave = await getSaveFileJsonString(outerContext, projectPath);
     if (jsonToSave == null) return Future<bool>.value(true);
-    return showCustomDialog(
+    return await showDialog(
       context: outerContext,
-      bodyText: 'Everything you\'ve been working on for the last xx minutes will be lost forever!',
-      title: 'Are you sure you want to leave?',
-      optionTrue: 'Yes',
-      optionFalse: 'No',
-      customActions: [
-        TextButton(
-          onPressed: () async {
-            if (await Utils.saveProgress(outerContext, projectPath, jsonToSave)) {
+      builder: (BuildContext innerContext) => showCustomDialog(
+        context: outerContext,
+        bodyText: 'Everything you\'ve been working on since the last save will be lost forever!',
+        title: 'Are you sure you want to leave?',
+        optionTrue: 'Yes',
+        optionFalse: 'No',
+        customActions: [
+          TextButton(
+            onPressed: () async {
+              await Utils.saveProgress(outerContext, projectPath, jsonToSave);
               Navigator.pop(outerContext, true);
-            } else {
-              Navigator.pop(outerContext, true);
-            }
-          },
-          child: const Text('Save before leaving'),
-        ),
-      ],
+            },
+            child: const Text('Save before leaving'),
+          ),
+        ],
+      ),
     );
     // return showDialog<bool>(
     //   context: outerContext,

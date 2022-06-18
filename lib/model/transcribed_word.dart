@@ -2,7 +2,7 @@ class TranscribedWord {
 
   late int currentStartTime;
   late int currentEndTime;
-  final int order;
+  int order;
   final int startTime;
   final int endTime;
   final String text;
@@ -18,6 +18,17 @@ class TranscribedWord {
     currentStartTime = startTime;
     currentEndTime = endTime;
   }
+
+  TranscribedWord.copy({
+    required this.text,
+    required this.startTime,
+    required this.endTime,
+    required this.order,
+    required this.projectDirectory,
+    required this.currentEndTime,
+    required this.currentStartTime
+  });
+
 
   TranscribedWord.fromJson(Map<String, dynamic> json)
       : currentStartTime = json['currentStartTime'],

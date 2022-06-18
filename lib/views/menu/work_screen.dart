@@ -9,6 +9,11 @@ import 'package:provider/provider.dart';
 
 class WorkScreen extends StatelessWidget {
   static const id = 'workscreen';
+  bool _isLoading = false;
+  
+  setLoadingStatus(bool status) {
+    _isLoading = status;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +34,7 @@ class WorkScreen extends StatelessWidget {
         Utils.retrieveDataIfSaved(context, _projectDirectory);
         return WillPopScope(
           onWillPop: () async {
+            if(_isLoading) return false;
             if (Utils.handleUninitialized(context, _projectDirectory)) return true;
             bool? exit = await Utils.showDialogWorkScreen(context, _projectDirectory);
             return exit ?? false;
@@ -37,9 +43,9 @@ class WorkScreen extends StatelessWidget {
             body: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 40.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  VideoWidget(_projectDirectory),
+                  VideoWidget(_projectDirectory, setLoadingStatus),
                   TranscriptWidget(_projectDirectory),
                 ],
               ),
