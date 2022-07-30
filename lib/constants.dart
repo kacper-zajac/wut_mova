@@ -6,6 +6,7 @@ const String kWorkDirectoryName = '/project_files';
 const String kThumbnailFileName = '/thumbnail.jpg';
 const String kAudioFileName = '/out_audio.wav';
 const String kVideoFileName = '/out_video.mp4';
+const String kOriginalCopyFileName = '/original_copy';
 const String kSaveFileName = '/save';
 const String kVideoWordName = 'word';
 const String kVideoBreakName = 'break';

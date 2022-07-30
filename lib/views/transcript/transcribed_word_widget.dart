@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 
 class TranscribedWordWidget extends StatelessWidget {
   TranscribedWordWidget({required this.transcribedWidget, required this.isCopyContext}) {
-    startHighlightTime = transcribedWidget.currentStartTime - kSpeechConstant;
+    startHighlightTime = transcribedWidget.currentStartTime - 2 * kSpeechConstant;
     endHighlightTime = transcribedWidget.currentEndTime + kSpeechConstant;
   }
 
@@ -59,7 +59,6 @@ class TranscribedWordWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     int? currentMicro = Provider.of<VideoTimer>(context, listen: true).microSeconds;
-    print(currentMicro);
     return InkWell(
       key: containerKey,
       onTap: () {
@@ -79,7 +78,7 @@ class TranscribedWordWidget extends StatelessWidget {
         height: kWordBoxHeight,
         width: kWordBoxWidth,
         child: Utils.centeredText(
-          text: transcribedWidget.text + '\n' + (transcribedWidget.startTime / 100000).toString() + ':' + (transcribedWidget.currentStartTime / 100000).toString() + '\n' + (transcribedWidget.endTime / 100000).toString() + ':' + (transcribedWidget.currentEndTime / 100000).toString(),
+          text: transcribedWidget.text,
           style: isInFrame(currentMicro) ? kTranscribedTextActive : kTranscribedTextInactive,
         ),
       ),

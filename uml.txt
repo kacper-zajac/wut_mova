@@ -1,0 +1,458 @@
+@startuml
+set namespaceSeparator ::
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::firebase_options.dart::DefaultFirebaseOptions" {
+  {static} +dynamic android
+  {static} +dynamic ios
+  {static} +dynamic currentPlatform
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::main.dart::MyApp" {
+  +dynamic build()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::model::firebase.dart::FirebaseHandler" {
+  {static} +Future<void> initFirebase()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::model::permissions.dart::PermissionsHandler" {
+  {static} +Future<bool> requestStoragePermission()
+  {static} +Future<bool> requestWritePermission()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::model::speech_to_text.dart::SpeechToText1" {
+  -dynamic _serviceAccount
+  -dynamic _speechToText
+  -dynamic _config
+  +bool isInitialized
+  +Future<String> loadAsset()
+  +dynamic init()
+  +Future<void> getTranscript()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::model::transcribed_word.dart::TranscribedWord" {
+  +int currentStartTime
+  +int currentEndTime
+  +int order
+  +int startTime
+  +int endTime
+  +String text
+  +String projectDirectory
+  +Map<String, dynamic> toJson()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::model::video_converter.dart::VideoConverter" {
+  -dynamic _flutterFFmpeg
+  -dynamic _flutterFFprobe
+  +Future<void> toMp3()
+  +Future<void> createThumbnail()
+  +Future<void> createVidCopy()
+  +Future<String> extractChunk()
+  +Future<String> extractChunkCustomPath()
+  +String convertTimeToString()
+  +Future<void> exportVideo()
+  +Future<void> combineVideo()
+  +Future<String> combineVideoOriginal()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::provider::application_state.dart::ApplicationState" {
+  -dynamic _loginState
+  -String? _email
+  +dynamic loginState
+  +String? email
+  +Future<void> init()
+  +void startLoginFlow()
+  +Future<String> verifyEmail()
+  +Future<bool> signInWithEmailAndPassword()
+  +void cancelRegistration()
+  +Future<bool> registerAccount()
+  +void signOut()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::provider::file_path.dart::VideoPath" {
+  -String? _videoPath
+  -String? _originalVideoPath
+  -bool _isChanged
+  +bool isChanged
+  +String? videoPath
+  +String? originalVideoPath
+  +void setOriginalVideoPath()
+  +void setVideoPath()
+  +void handleChange()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::provider::transcribed_words.dart::TranscribedWords" {
+  -List<dynamic> _transcribedWords
+  -bool _isInitialized
+  +dynamic twToCopy
+  +List<dynamic> transcribedWords
+  +bool isInitialized
+  +void addWord()
+  +void deleteWord()
+  +void pasteBefore()
+  +void pasteAfter()
+  +void copyWord()
+  +void clearList()
+  +void markAsInitialized()
+  +String getJSON()
+  +void readWordsFromFile()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::provider::video_timer.dart::VideoTimer" {
+  +bool isPlaying
+  -int? _microSeconds
+  -int? _seconds
+  +int? seconds
+  +int? microSeconds
+  +void setTime()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::Authentication" {
+  +ApplicationLoginState loginState
+  +String? email
+  +void Function() startLoginFlow
+  +Future<String> Function(String) verifyEmail
+  +Future<bool> Function(String, String, dynamic, void Function(Exception)) signInWithEmailAndPassword
+  +void Function() cancelRegistration
+  +Future<bool> Function(String, String, String, dynamic, void Function(Exception)) registerAccount
+  +void Function() signOut
+  -dynamic _btnController
+  +dynamic build()
+}
+
+"file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::Authentication" o-- "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::ApplicationLoginState"
+"file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::Authentication" o-- "null::void Function()"
+"file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::Authentication" o-- "null::Future<String> Function(String)"
+"file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::Authentication" o-- "null::Future<bool> Function(String, String, dynamic, void Function(Exception))"
+"file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::Authentication" o-- "null::Future<bool> Function(String, String, String, dynamic, void Function(Exception))"
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::EmailForm" {
+  +Future<String> Function(String) callback
+  +_EmailFormState createState()
+}
+
+"file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::EmailForm" o-- "null::Future<String> Function(String)"
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::_EmailFormState" {
+  -dynamic _formKey
+  -dynamic _controller
+  -dynamic _btnController
+  +String errorMessage
+  +dynamic build()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::RegisterForm" {
+  +dynamic outerContext
+  +String email
+  +Future<bool> Function(String, String, String, dynamic) registerAccount
+  +void Function() cancel
+  +_RegisterFormState createState()
+}
+
+"file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::RegisterForm" o-- "null::Future<bool> Function(String, String, String, dynamic)"
+"file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::RegisterForm" o-- "null::void Function()"
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::_RegisterFormState" {
+  -dynamic _formKey
+  -dynamic _emailController
+  -dynamic _displayNameController
+  -dynamic _passwordController
+  -dynamic _btnController
+  +void initState()
+  +dynamic build()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::PasswordForm" {
+  +dynamic outerContext
+  +String email
+  +Future<bool> Function(String, String, dynamic) login
+  +_PasswordFormState createState()
+}
+
+"file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::PasswordForm" o-- "null::Future<bool> Function(String, String, dynamic)"
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::_PasswordFormState" {
+  -dynamic _formKey
+  -dynamic _emailController
+  -dynamic _passwordController
+  -dynamic _btnController
+  +void initState()
+  +dynamic build()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::ApplicationLoginState" {
+  +int index
+  {static} +List<ApplicationLoginState> values
+  {static} +ApplicationLoginState loggedOut
+  {static} +ApplicationLoginState emailAddress
+  {static} +ApplicationLoginState register
+  {static} +ApplicationLoginState password
+  {static} +ApplicationLoginState loggedIn
+}
+
+"file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::ApplicationLoginState" o-- "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::ApplicationLoginState"
+"dart::core::Enum" <|-- "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::authentication.dart::ApplicationLoginState"
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::auth::welcome_screen.dart::WelcomeScreen" {
+  {static} +String id
+  +dynamic build()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::menu::database_controller.dart::DatabaseController" {
+  +dynamic Function(dynamic) refreshProjects
+  +dynamic createState()
+}
+
+"file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::menu::database_controller.dart::DatabaseController" o-- "null::dynamic Function(dynamic)"
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::menu::database_controller.dart::_DatabaseControllerState" {
+  +dynamic type
+  +dynamic getIcon()
+  +void handleDatabaseChange()
+  +dynamic build()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::menu::logout_controller.dart::LogoutController" {
+  +void handleLogout()
+  +dynamic build()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::menu::menu_screen.dart::MenuScreen" {
+  {static} +String id
+  -Directory? _appDir
+  -dynamic _key
+  -dynamic _controller
+  -List<String> _projectTitles
+  +Future<void> getAppDirectory()
+  +void refreshProjects()
+  +Future<void> newProject()
+  +dynamic build()
+}
+
+"file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::menu::menu_screen.dart::MenuScreen" o-- "dart::io::Directory"
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::menu::menu_screen.dart::DatabaseType" {
+  +int index
+  {static} +List<DatabaseType> values
+  {static} +DatabaseType cloud
+  {static} +DatabaseType local
+}
+
+"file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::menu::menu_screen.dart::DatabaseType" o-- "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::menu::menu_screen.dart::DatabaseType"
+"dart::core::Enum" <|-- "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::menu::menu_screen.dart::DatabaseType"
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::menu::recent_projects.dart::RecentProjects" {
+  +Function callback
+  +dynamic createState()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::menu::recent_projects.dart::RecentProjectsState" {
+  -Directory? _appDir
+  -List<dynamic>? _projects
+  +dynamic currentDatabaseType
+  +dynamic db
+  -Future<List<dynamic>> _getProjects()
+  -Future<List<dynamic>> _getProjectsCloud()
+  -Future<List<dynamic>> _getProjectsLocal()
+  +Future<void> refreshListCurrentType()
+  +Future<void> refreshList()
+  +void initState()
+  +dynamic build()
+}
+
+"file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::menu::recent_projects.dart::RecentProjectsState" o-- "dart::io::Directory"
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::menu::reusable_list_tile.dart::ReusableListTile" {
+  +Function refreshCallback
+  +String projPath
+  +String projName
+  +String createDate
+  +DatabaseType currentDatabaseType
+  +dynamic projectReference
+  +dynamic createState()
+}
+
+"file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::menu::reusable_list_tile.dart::ReusableListTile" o-- "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::menu::menu_screen.dart::DatabaseType"
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::menu::reusable_list_tile.dart::_ReusableListTileState" {
+  -bool _error
+  +void openProject()
+  +void deleteProject()
+  +void uploadProject()
+  +void downloadProject()
+  +dynamic errorIcon()
+  +dynamic build()
+  +dynamic errorBehaviour()
+  +dynamic expectedBehaviour()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::menu::work_screen.dart::WorkScreen" {
+  {static} +String id
+  -bool _isLoading
+  +dynamic setLoadingStatus()
+  +dynamic build()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::splash_screen.dart::SplashScreen" {
+  +dynamic build()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::transcript::transcribed_word_widget.dart::TranscribedWordWidget" {
+  +bool isCopyContext
+  +dynamic transcribedWidget
+  +int startHighlightTime
+  +int endHighlightTime
+  +dynamic containerKey
+  +dynamic box
+  +dynamic position
+  +dynamic relRectSize
+  +bool isInFrame()
+  +dynamic menuItem()
+  +dynamic menuItems()
+  +dynamic build()
+  +List<dynamic> menuActions()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::transcript::transcript_widget.dart::TranscriptWidget" {
+  +String projectDirectory
+  +dynamic createState()
+  {static} +_TranscriptWidgetState? of()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::transcript::transcript_widget.dart::_TranscriptWidgetState" {
+  -List<TranscribedWord> _transcribedWords
+  +bool justInitialized
+  -dynamic _saveButtonController
+  -dynamic _refreshButtonController
+  -dynamic _exportButtonController
+  -bool _isCopyContext
+  +bool isCopyContext
+  +List<dynamic> getTranscript()
+  +dynamic build()
+  +dynamic transcriptSection()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::video::video_item.dart::VideoItem" {
+  +dynamic videoPlayerController
+  +dynamic createState()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::video::video_item.dart::_VideoItemState" {
+  -dynamic _chewieController
+  +void initState()
+  +void dispose()
+  +dynamic build()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::video::video_widget.dart::VideoWidget" {
+  -String _projectDirectory
+  +Function callback
+  +dynamic createState()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::video::video_widget.dart::_VideoWidgetState" {
+  -String? _currentVideoPath
+  -dynamic _videoPlayerController
+  -bool _loading
+  +dynamic setLoadingState()
+  +Future<void> getVideo()
+  +void initializePlayer()
+  +Future<void> controllerChange()
+  +Future<void> disposeVideoController()
+  +void dispose()
+  +void cleanProjectDirectory()
+  +dynamic build()
+  +dynamic chooseVideoButton()
+  +dynamic loadingView()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::widgets::animated_logo.dart::AnimatedLogo" {
+  +bool isFullLogo
+  +double size
+  +String logo
+  +dynamic createState()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::widgets::animated_logo.dart::_AnimatedLogoState" {
+  -dynamic _controller1
+  -dynamic _controller2
+  -dynamic _controller3
+  -dynamic _animation1
+  -dynamic _animation2
+  -dynamic _animation3
+  -double _opacity
+  +void initState()
+  +void dispose()
+  +dynamic build()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::widgets::reusable_tile.dart::ReusableTile" {
+  +dynamic child
+  +dynamic color
+  +dynamic Function()? onPress
+  +bool isPadding
+  +dynamic build()
+}
+
+"file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::widgets::reusable_tile.dart::ReusableTile" o-- "null::dynamic Function()"
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::widgets::sign_in_widget.dart::SignInWidget" {
+  +dynamic createState()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::widgets::sign_in_widget.dart::_SignInWidgetState" {
+  -double _opacity
+  +void initState()
+  +dynamic build()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::widgets::utils.dart::Utils" {
+  {static} +void retrieveDataIfSaved()
+  {static} +bool handleUninitialized()
+  {static} +Future<String?> getSaveFileJsonString()
+  {static} +Future<bool> saveProgress()
+  {static} +Future<bool> saveProgressFromScratch()
+  {static} +Future<bool?> showAlertDialog()
+  {static} +Future<bool?> showErrorDialog()
+  {static} +Future<bool?> showErrorDialogWitException()
+  {static} -List<dynamic> _getActions()
+  {static} +dynamic showCustomDialog()
+  {static} +Future<bool?> simpleAlert()
+  {static} +Future<bool?> showDialogDeleteConfirmation()
+  {static} +Future<String?> showDialogGetTitle()
+  {static} +Future<bool?> showDialogWorkScreen()
+  {static} +Future<Directory> getAppDirectory()
+  {static} +dynamic centeredText()
+  {static} +dynamic menuButton()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::widgets::widgets.dart::Header" {
+  +String heading
+  +dynamic build()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::widgets::widgets.dart::Paragraph" {
+  +String content
+  +dynamic build()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::widgets::widgets.dart::IconAndDetail" {
+  +dynamic icon
+  +String detail
+  +dynamic build()
+}
+
+class "file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::widgets::widgets.dart::StyledButton" {
+  +dynamic child
+  +void Function() onPressed
+  +dynamic controller
+  +double width
+  +int durationInSeconds
+  +bool resetAfterDuration
+  +dynamic build()
+}
+
+"file:::::::C:::Users::zkacp::OneDrive%20-%20Politechnika%20Warszawska::PRACA::app::lib::views::widgets::widgets.dart::StyledButton" o-- "null::void Function()"
+
+
+@enduml

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:mova/views/menu/menu_screen.dart';
 import 'package:mova/views/menu/reusable_list_tile.dart';
@@ -21,24 +22,64 @@ class RecentProjectsState extends State<RecentProjects> {
   Directory? _appDir;
   List<ReusableListTile>? _projects;
   late DatabaseType currentDatabaseType;
+  final db = FirebaseStorage.instance;
 
   Future<List<ReusableListTile>> _getProjects(DatabaseType databaseType) {
     switch (databaseType) {
       case DatabaseType.local:
         return _getProjectsLocal();
       case DatabaseType.cloud:
-        return Future.value(
-          List<ReusableListTile>.generate(
-            0,
-            (index) => ReusableListTile(
-              projName: '',
-              createDate: '',
-              projPath: 'projPath',
-              refreshCallback: refreshListCurrentType,
-            ),
+        return _getProjectsCloud();
+    }
+  }
+
+  Future<List<ReusableListTile>> _getProjectsCloud() async {
+    if (_projects != null && _projects!.isNotEmpty) _projects!.removeRange(0, _projects!.length);
+    List<String> _projectTitles = [];
+    List<ReusableListTile> _projectsNewList = [];
+
+    final storageRef = FirebaseStorage.instance.ref();
+    print(storageRef);
+    final listResult = await storageRef.listAll();
+
+    final tempStorage = _appDir!.path + '/temp_cloud';
+
+    if (Directory(tempStorage).existsSync()) Directory(tempStorage).deleteSync(recursive: true);
+
+    Directory(tempStorage).createSync();
+
+    for (var prefix in listResult.prefixes) {
+      _projectTitles.add(prefix.fullPath);
+      String projectPath = tempStorage + '/' + prefix.fullPath;
+      Directory(projectPath).createSync();
+
+      final pathReference = storageRef.child(prefix.fullPath);
+      final configReference = pathReference.child('config');
+      final configFile = File(projectPath + '/config');
+
+      final thumbnailReference = pathReference.child(kThumbnailFileName);
+      final thumbnailFile = File(projectPath + kThumbnailFileName);
+      try {
+        await configReference.writeToFile(configFile);
+        try {
+          await thumbnailReference.writeToFile(thumbnailFile);
+        } catch(e) {}
+        Map<String, dynamic> config = jsonDecode(await configFile.readAsString());
+        _projectTitles.add(config['projName']!);
+        _projectsNewList.add(
+          ReusableListTile(
+            projectReference: pathReference,
+            currentDatabaseType: DatabaseType.cloud,
+            projName: config['projName']!,
+            createDate: config['createDate']!,
+            projPath: projectPath,
+            refreshCallback: refreshListCurrentType,
           ),
         );
+      } catch (e) {}
     }
+    widget.callback(_projectTitles);
+    return _projectsNewList;
   }
 
   Future<List<ReusableListTile>> _getProjectsLocal() async {
@@ -56,6 +97,7 @@ class RecentProjectsState extends State<RecentProjects> {
         _projectTitles.add(config['projName']!);
         _projectsNewList.add(
           ReusableListTile(
+            currentDatabaseType: DatabaseType.local,
             projName: config['projName']!,
             createDate: config['createDate']!,
             projPath: folder.path,

@@ -41,7 +41,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCew7Zzq3Q6pt3aOO6cF2qTun0ghbFcvZc',
-    appId: '1:383118763711:android:d7881fe2e476441690c80a',
+    appId: '1:383118763711:android:39f3070e3da927d790c80a',
     messagingSenderId: '383118763711',
     projectId: 'wut-zajka-mova',
     storageBucket: 'wut-zajka-mova.appspot.com',
@@ -49,10 +49,11 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyCns55XF7dwTnYDsOCQDmCZlbUcQ89hkRA',
-    appId: '1:383118763711:ios:4e40bc926efb214d90c80a',
+    appId: '1:383118763711:ios:8f66eb35bf1fc7f490c80a',
     messagingSenderId: '383118763711',
     projectId: 'wut-zajka-mova',
     storageBucket: 'wut-zajka-mova.appspot.com',
+    androidClientId: '383118763711-9d0aceabccqshmvv83p085g2d5emvv48.apps.googleusercontent.com',
     iosClientId: '383118763711-ebk4csasapf2jkmip4082jmua3oh3r9s.apps.googleusercontent.com',
     iosBundleId: 'pl.zajka.mova',
   );

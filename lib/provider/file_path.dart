@@ -11,8 +11,6 @@ class VideoPath with ChangeNotifier {
 
   void setOriginalVideoPath(String val) {
     _originalVideoPath = val;
-    print('Original set');
-    print(val);
   }
 
   void setVideoPath(String? val){

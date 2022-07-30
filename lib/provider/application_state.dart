@@ -28,7 +28,6 @@ class ApplicationState extends ChangeNotifier {
 
   ApplicationLoginState _loginState = ApplicationLoginState.loggedOut;
 
-  ApplicationLoginState get loginState => _loginState;
 
   String? _email;
 
@@ -51,7 +50,7 @@ class ApplicationState extends ChangeNotifier {
       notifyListeners();
       return 'SUCCESS';
     } on FirebaseAuthException catch (e) {
-      return e.message ?? 'Identified error. Please try again!';
+      return e.message ?? 'Unidentified error. Please try again!';
     }
   }
 

@@ -91,7 +91,7 @@ class Authentication extends StatelessWidget {
                   (e) => Utils.showErrorDialogWitException(context, 'Failed to sign in', e)),
         );
       case ApplicationLoginState.loggedIn:
-        if (email == null) signOut();
+        if (email == null || email!.isEmpty) signOut();
         //TODO push delaed - logged in successfully
         // else Navigator.pushReplacementNamed(context, MenuScreen.id);
         return Padding(

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_ffmpeg/flutter_ffmpeg.dart';
 import 'package:gallery_saver/gallery_saver.dart';
@@ -7,6 +8,7 @@ import 'package:mova/constants.dart';
 import 'package:mova/model/speech_to_text.dart';
 import 'package:mova/model/transcribed_word.dart';
 import 'package:mova/provider/file_path.dart';
+import 'package:mova/views/widgets/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 
@@ -14,14 +16,24 @@ import '../constants.dart';
 
 class VideoConverter {
   final FlutterFFmpeg _flutterFFmpeg = FlutterFFmpeg();
+  final FlutterFFprobe _flutterFFprobe = FlutterFFprobe();
 
   Future<void> toMp3(BuildContext context, String path, String projectDirectory) async {
     String filePath = projectDirectory + kAudioFileName;
     if (File(filePath).existsSync()) File(filePath).deleteSync();
     await _flutterFFmpeg
-        .execute("-i $path -q:a 0 -map a -filter:a \"volume=1.5\" $filePath")
-        .then((_) {
-      SpeechToText1().getTranscript(context, filePath, projectDirectory);
+        .execute(
+            "-i $path -vn -acodec pcm_s16le -ar 44100 -ac 1 -filter:a \"volume=2.0\" $filePath")
+        .then((_) async {
+      await _flutterFFprobe.getMediaInformation(path).then((info) async {
+        await SpeechToText1().getTranscript(
+            context,
+            filePath,
+            projectDirectory,
+            info.getMediaProperties() == null
+                ? 0.0
+                : double.parse(info.getMediaProperties()!['duration']));
+      });
     });
   }
 
@@ -29,27 +41,44 @@ class VideoConverter {
     String thumbnailPath = projectDirectory + kThumbnailFileName;
     if (File(thumbnailPath).existsSync()) File(thumbnailPath).deleteSync();
     await _flutterFFmpeg
-        .execute("-ss 00:00:00.000  -i $filePath -vframes 1 $thumbnailPath")
+        .execute("-ss 00:00:00.000 -i $filePath -vframes 1 $thumbnailPath")
         .then((_) {});
   }
 
   Future<void> createVidCopy(BuildContext context, String path, String projectDirectory) async {
     String filePath = projectDirectory + kVideoFileName;
     String originalCopyPath =
-        projectDirectory + '/original_copy' + path.substring(path.lastIndexOf('.'));
+        projectDirectory + kOriginalCopyFileName + path.substring(path.lastIndexOf('.'));
 
     if (File(originalCopyPath).existsSync()) File(originalCopyPath).deleteSync();
-
-    await _flutterFFmpeg.execute("-i $path $originalCopyPath").then((_) async {
-      Provider.of<VideoPath>(context, listen: false).setOriginalVideoPath(originalCopyPath);
-    });
-
     if (File(filePath).existsSync()) File(filePath).deleteSync();
 
-    await _flutterFFmpeg.execute("-i $path -vf scale=640:480 $filePath").then((_) async {
-      Provider.of<VideoPath>(context, listen: false).setVideoPath(filePath);
-      toMp3(context, filePath, projectDirectory);
-      createThumbnail(filePath, projectDirectory);
+    await _flutterFFmpeg.execute("-i $path -map 0:a -map 0:v -c copy -crf 27 -preset veryfast $originalCopyPath").then((rc) async {
+      if (rc == 0) {
+        Provider.of<VideoPath>(context, listen: false).setOriginalVideoPath(originalCopyPath);
+      } else {
+        if (await Utils.showErrorDialog(
+            context, 'Unidentified error occurred. Please try again.') ??
+            false) {
+          Navigator.of(context).pop();
+        }
+    });
+
+    await _flutterFFmpeg
+        .execute("-i $originalCopyPath -vf scale=640:480 -r 60 -crf 27 -preset veryfast $filePath")
+        .then((rc) async {
+      if (rc == 0) {
+        await toMp3(context, filePath, projectDirectory);
+        Provider.of<VideoPath>(context, listen: false).setVideoPath(filePath);
+        await createThumbnail(filePath, projectDirectory);
+      } else {
+        if (await Utils.showErrorDialog(
+                context, 'Unidentified error occurred. Please try again.') ??
+            false) {
+          Navigator.of(context).pop();
+        }
+        _flutterFFmpeg.cancel();
+      }
     });
   }
 
@@ -59,7 +88,7 @@ class VideoConverter {
     String filePath = workDir + '/temp' + order.toString() + '.mp4';
     String startTime = convertTimeToString(chunkStartTime);
     String endTime = convertTimeToString(chunkEndTime);
-    await _flutterFFmpeg.execute("-ss $startTime -to $endTime -i $videoPath $filePath");
+    await _flutterFFmpeg.execute("-ss $startTime -to $endTime -i $videoPath -map 0:a -map 0:v -crf 27 -preset veryfast $filePath");
     return filePath;
   }
 
@@ -69,34 +98,35 @@ class VideoConverter {
     String filePath = workDir + '/temp' + order.toString() + fileExtension;
     String startTime = convertTimeToString(chunkStartTime);
     String endTime = convertTimeToString(chunkEndTime);
-    await _flutterFFmpeg.execute("-ss $startTime -to $endTime -i $videoPath -c copy $filePath");
+    await _flutterFFmpeg.execute("-ss $startTime -to $endTime -i $videoPath -map 0:a -map 0:v -crf 27 -preset veryfast $filePath");
     return filePath;
   }
 
-  Future<String> extractWord(TranscribedWord tw) async {
-    String videoPath = tw.projectDirectory + kVideoFileName;
-    String filePath = tw.projectDirectory +
-        kWorkDirectoryName +
-        '/' +
-        ((tw.text == '_') ? kVideoBreakName : kVideoWordName) +
-        '_' +
-        tw.order.toString() +
-        '.mp4';
-    String startTime = convertTimeToString(tw.startTime);
-    String endTime = convertTimeToString(tw.endTime);
-    await _flutterFFmpeg.execute("-ss $startTime -to $endTime -i $videoPath $filePath");
-    return filePath;
-  }
+  // Future<String> extractWord(TranscribedWord tw) async {
+  //   String videoPath = tw.projectDirectory + kVideoFileName;
+  //   String filePath = tw.projectDirectory +
+  //       kWorkDirectoryName +
+  //       '/' +
+  //       ((tw.text == '_') ? kVideoBreakName : kVideoWordName) +
+  //       '_' +
+  //       tw.order.toString() +
+  //       '.mp4';
+  //   String startTime = convertTimeToString(tw.startTime);
+  //   String endTime = convertTimeToString(tw.endTime);
+  //   await _flutterFFmpeg.execute("-ss $startTime -to $endTime -i $videoPath -c copy $filePath");
+  //   return filePath;
+  // }
 
   String convertTimeToString(int time) {
     double timeDouble = time / 1000000.0;
-    int seconds = ((timeDouble - timeDouble.truncate()) * 1000).floor();
-    int minutes = timeDouble.truncate();
 
-    String stringTime = seconds < 100
-        ? '00:00:0' + minutes.toString() + '.0' + seconds.toString()
-        : '00:00:0' + minutes.toString() + '.' + seconds.toString();
-    return stringTime;
+    int s = timeDouble.truncate();
+    int ms = ((timeDouble - s) * 1000).round();
+
+    String msString = ms < 100 ? '.0' + ms.toString() : '.' + ms.toString();
+    String sString = s < 10 ? ':0' + s.toString() : ':' + s.toString();
+
+    return '00:00' + sString + msString;
   }
 
   Future<void> exportVideo(RoundedLoadingButtonController controller, String projectDirectory,
@@ -105,10 +135,11 @@ class VideoConverter {
     var exportedFilePath = await combineVideoOriginal(projectDirectory, words, fileName!);
     if (exportedFilePath != 'Error') {
       await GallerySaver.saveVideo(exportedFilePath, albumName: 'Mova').then((bool? success) {
-        if (success != null && success)
+        if (success != null && success) {
           controller.success();
-        else
+        } else {
           controller.error();
+        }
       });
     } else {
       controller.error();
@@ -127,7 +158,6 @@ class VideoConverter {
     String filesToConcat = '';
 
     for (TranscribedWord tw in words) {
-      print(tw.text);
       if (endTime == tw.startTime) {
         endTime = tw.endTime;
         continue;
@@ -161,7 +191,9 @@ class VideoConverter {
     final bytes = utf8.encode(filesToConcat);
     await File(filePathTxt).writeAsBytes(bytes);
 
-    await _flutterFFmpeg.execute("-f concat -safe 0 -i $filePathTxt  -c copy $filePath").then((rc) async {
+    await _flutterFFmpeg
+        .execute("-f concat -safe 0 -i $filePathTxt -map 0:a -map 0:v -c copy $filePath")
+        .then((rc) async {
       if (rc == 0) {
         Provider.of<VideoPath>(context, listen: false).setVideoPath(filePath);
       }
@@ -211,7 +243,6 @@ class VideoConverter {
             await extractChunkCustomPath(order++, originalFilePath, fileExtension, buildDirPath,
                 projectDirectory, startTime, endTime!) +
             '\'';
-        print(startTime.toString() + ':' + endTime.toString() + ' - chuck created!');
       }
       String filePathTxt = buildDirPath + '/temp_combined.txt';
       String filePath = projectDirectory + kWorkDirectoryName + '/export_original' + fileExtension;
@@ -220,7 +251,9 @@ class VideoConverter {
 
       final bytes = utf8.encode(filesToConcat);
       await File(filePathTxt).writeAsBytes(bytes);
-      await _flutterFFmpeg.execute("-f concat -safe 0 -i $filePathTxt -c copy $filePath").then((rc) async {
+      await _flutterFFmpeg
+          .execute("-f concat -safe 0 -i $filePathTxt -map 0:a -map 0:v -c copy $filePath")
+          .then((rc) async {
         if (rc == 1) throw Exception('Video not created');
       });
 

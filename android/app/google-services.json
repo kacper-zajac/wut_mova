@@ -7,12 +7,20 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:383118763711:android:d7881fe2e476441690c80a",
+        "mobilesdk_app_id": "1:383118763711:android:39f3070e3da927d790c80a",
         "android_client_info": {
-          "package_name": "pl.kacperzajac.mova"
+          "package_name": "pl.zajka.mova"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "383118763711-9d0aceabccqshmvv83p085g2d5emvv48.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "pl.zajka.mova",
+            "certificate_hash": "dd9758f0c3896ab7aa4813492b17d708602f3c07"
+          }
+        },
         {
           "client_id": "383118763711-a7qrqbbltvutbuljnupicfcnr6nt38a4.apps.googleusercontent.com",
           "client_type": 3
@@ -29,6 +37,13 @@
             {
               "client_id": "383118763711-a7qrqbbltvutbuljnupicfcnr6nt38a4.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "383118763711-babsebl8gb3ku68ffdtb9slepvajhsp3.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "pl.kacperzajac.mova"
+              }
             }
           ]
         }

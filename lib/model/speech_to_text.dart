@@ -31,15 +31,15 @@ class SpeechToText1 {
         encoding: AudioEncoding.LINEAR16,
         model: RecognitionModel.video,
         enableAutomaticPunctuation: false,
-        sampleRateHertz: 48000,
-        audioChannelCount: 2,
+        sampleRateHertz: 44100,
+        audioChannelCount: 1,
         enableWordTimeOffsets: true,
         languageCode: 'en-US');
     isInitialized = true;
   }
 
   Future<void> getTranscript(
-      BuildContext context, String audioPath, String projectDirectory) async {
+      BuildContext context, String audioPath, String projectDirectory, double duration) async {
     if (!isInitialized) await init();
     Directory(projectDirectory + kWorkDirectoryName).createSync();
 
@@ -47,13 +47,24 @@ class SpeechToText1 {
     Provider.of<TranscribedWords>(context, listen: false).clearList();
     await _speechToText.recognize(_config, audio).then(
       (value) async {
+        print('---- DEBUG ----');
+        print(value.toString());
+        print('---- DEBUG ----');
         int iter = 0;
+        int lastEndTime = 0;
         for (gcs.SpeechRecognitionResult results in value.results) {
+          print('---- DEBUG ----');
+          print(results.toString());
+          print('---- DEBUG ----');
           for (gcs.WordInfo wi in results.alternatives.first.words) {
             int startTimeSec = wi.startTime.seconds.toInt() * 1000000;
             int startTimeMicroSec = wi.startTime.nanos ~/ 1000;
             int endTimeSec = wi.endTime.seconds.toInt() * 1000000;
             int endTimeMicroSec = wi.endTime.nanos ~/ 1000;
+            print('---- DEBUG ----');
+            print(wi.toString());
+            print('---- DEBUG ----');
+
             Provider.of<TranscribedWords>(context, listen: false).addWord(
               TranscribedWord(
                 text: wi.word,
@@ -63,7 +74,20 @@ class SpeechToText1 {
                 projectDirectory: projectDirectory,
               ),
             );
+            lastEndTime = endTimeSec + endTimeMicroSec;
           }
+        }
+        int durationInt = (duration * 1000000).toInt();
+        if(lastEndTime != 0.0 && lastEndTime < durationInt) {
+          Provider.of<TranscribedWords>(context, listen: false).addWord(
+            TranscribedWord(
+              text: '_',
+              startTime: lastEndTime,
+              endTime: durationInt,
+              order: iter++,
+              projectDirectory: projectDirectory,
+            ),
+          );
         }
         Provider.of<TranscribedWords>(context, listen: false).markAsInitialized();
         String? jsonToSave = await Utils.getSaveFileJsonString(context, projectDirectory);

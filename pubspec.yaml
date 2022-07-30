@@ -49,6 +49,8 @@ dependencies:
   rounded_loading_button: ^2.1.0
   google_fonts: ^2.3.1
   gallery_saver: ^2.3.2
+  firebase_storage: ^10.2.18
+  getApplicationDocumentsDirectory: ^3.1.18
 
 dev_dependencies:
   flutter_test:

@@ -1,4 +1,4 @@
-package pl.kacperzajac.mova;
+package pl.zajka.mova;
 
 import io.flutter.embedding.android.FlutterActivity;
 

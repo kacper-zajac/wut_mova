@@ -108,7 +108,7 @@ class MenuScreen extends StatelessWidget {
                       child: Column(
                         children: [
                           const Text(
-                            'Create new',
+                            'Create new local project',
                             style: kBoxTextStyle,
                           ),
                           SizedBox(height: 40.0),
